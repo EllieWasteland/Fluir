@@ -1,251 +1,500 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="default-light">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fluir - Gestión de Tareas y Horarios</title>
-    
-    <!-- PWA: Enlace al manifiesto y color del tema -->
+    <title>Fluir APP</title>
+     <!-- PWA: Enlace al manifiesto y color del tema -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#C8FF00">
     <!-- PWA: Icono para dispositivos Apple -->
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Kdam+Thmor+Pro&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* [El resto del CSS se mantiene igual, no es necesario pegarlo de nuevo] */
-        :root { --bg-env: #EAEAFE; --bg-main: #FFFFFF; --text-primary: #000000; --text-secondary: #4a4a4a; --accent-primary: #C8FF00; --card-color-1: #E0D7FF; --card-color-2: #FFF3B0; --border-color: #000000; }
-        [data-theme="pastel-dream-light"] { --bg-env: #F0F8FF; --bg-main: #FFFFFF; --text-primary: #333333; --text-secondary: #5f5f5f; --accent-primary: #FFD1DC; --card-color-1: #B0E0E6; --card-color-2: #98FB98; --border-color: #333333; }
-        [data-theme="mint-choco-light"] { --bg-env: #F5FFFA; --bg-main: #FFFFFF; --text-primary: #3D2B1F; --text-secondary: #654321; --accent-primary: #AFE1AF; --card-color-1: #E0D7FF; --card-color-2: #D2B48C; --border-color: #3D2B1F; }
-        [data-theme="autumn-crisp-light"] { --bg-env: #FFF8E1; --bg-main: #FFFFFF; --text-primary: #4E342E; --text-secondary: #6D4C41; --accent-primary: #FFAB91; --card-color-1: #FFCC80; --card-color-2: #A5D6A7; --border-color: #4E342E; }
-        [data-theme="beach-day-light"] { --bg-env: #E0F7FA; --bg-main: #FFFFFF; --text-primary: #004D40; --text-secondary: #00695C; --accent-primary: #FFD180; --card-color-1: #B2EBF2; --card-color-2: #FFF59D; --border-color: #004D40; }
-        [data-theme="deep-space-dark"] { --bg-env: #0C0A1A; --bg-main: #1A1A2E; --text-primary: #E0E0E0; --text-secondary: #a0a0a0; --accent-primary: #E94560; --card-color-1: #16213E; --card-color-2: #0F3460; --border-color: #E0E0E0; }
-        [data-theme="forest-night-dark"] { --bg-env: #1A201A; --bg-main: #2A312A; --text-primary: #E8F5E9; --text-secondary: #a5d6a7; --accent-primary: #A5D6A7; --card-color-1: #384738; --card-color-2: #556B55; --border-color: #E8F5E9; }
-        [data-theme="vampire-dark"] { --bg-env: #121212; --bg-main: #1E1E1E; --text-primary: #EAEAEA; --text-secondary: #b3b3b3; --accent-primary: #CF6679; --card-color-1: #3700B3; --card-color-2: #BB86FC; --border-color: #EAEAEA; }
-        [data-theme="cyberpunk-dark"] { --bg-env: #0d0221; --bg-main: #26174a; --text-primary: #c9f9ff; --text-secondary: #8ef9f3; --accent-primary: #f0f; --card-color-1: #5d31a5; --card-color-2: #077187; --border-color: #c9f9ff; }
-        [data-theme="cozy-autumn-dark"] { --bg-env: #2C1E18; --bg-main: #422D23; --text-primary: #FFE0B2; --text-secondary: #ffcc80; --accent-primary: #FF8A65; --card-color-1: #A1887F; --card-color-2: #795548; --border-color: #FFE0B2; }
+        /* --- ESTILOS BASE Y DEL EJEMPLO DE VIDRIO LÍQUIDO --- */
+
+        :root {
+            --text-primary: #FFFFFF;
+            --text-secondary: #E0E0E0;
+            --accent-primary: #00F0FF;
+            --danger-color: #FF4757;
+            --dark-text: #0C0A1A;
+            /* Tinte más oscuro y opaco para mejorar contraste */
+            --glass-tint-color: rgba(30, 30, 50, 0.65);
+            --glass-tint-hover: rgba(50, 50, 70, 0.75);
+        }
+
+        body {
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            min-height: 100vh;
+            background: url("https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/flowers.jpg") center center / cover fixed;
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            font-weight: 300;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            /* Padding para dejar espacio a los elementos fijos inferiores */
+            padding-top: 2rem;
+            padding-bottom: 8rem;
+            padding-left: 1rem;
+            padding-right: 1rem;
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        .liquidGlass-wrapper {
+            position: relative;
+            display: block; 
+            font-weight: 600;
+            overflow: hidden;
+            color: black; 
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3), 0 0 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.5);
+            border-radius: 1.8rem; 
+        }
+
+        .liquidGlass-effect {
+            position: absolute;
+            z-index: 0;
+            inset: 0;
+            backdrop-filter: blur(10px) saturate(120%);
+            -webkit-backdrop-filter: blur(10px) saturate(120%);
+            filter: url(#glass-distortion);
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .liquidGlass-tint {
+            z-index: 1;
+            position: absolute;
+            inset: 0;
+            background: var(--glass-tint-color);
+            transition: background-color 0.3s ease;
+        }
+        
+        .liquidGlass-wrapper:hover .liquidGlass-tint {
+            background: var(--glass-tint-hover);
+        }
+
+        .liquidGlass-shine {
+            position: absolute;
+            inset: 0;
+            z-index: 2;
+            overflow: hidden;
+            box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.3),
+                        inset -1px -1px 1px 1px rgba(255, 255, 255, 0.15);
+            border-radius: inherit;
+        }
+
+        .liquidGlass-text {
+            position: relative; 
+            z-index: 3;
+            color: var(--text-primary); 
+            width: 100%;
+            padding: 1.25rem; 
+        }
+
+        /* --- ESTILOS PERSONALIZADOS PARA LA PWA "FLUIR" --- */
         html { scroll-behavior: smooth; }
-        body { background-color: var(--bg-env); font-family: 'Inter', sans-serif; color: var(--text-primary); transition: background-color 0.3s ease, color 0.3s ease; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; padding-left: 1rem; padding-right: 1rem; padding-top: 1rem; padding-bottom: 7rem; }
-        @media (min-width: 768px) { body { padding-left: 2rem; padding-right: 2rem; padding-bottom: 2rem; padding-top: 7rem; } }
         .font-heading { font-family: 'Kdam Thmor Pro', sans-serif; }
-        .neo-brutalist { border: 2px solid var(--border-color); box-shadow: 4px 4px 0px var(--border-color); transition: all 0.15s ease-out, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease; border-radius: 0.5rem; }
-        .neo-brutalist-flat { border: 2px solid var(--border-color); border-radius: 0.5rem; transition: background-color 0.3s ease, border-color 0.3s ease; }
-        .btn-primary { background-color: var(--accent-primary); }
-        .btn-primary:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--border-color); }
-        .btn-secondary { background-color: var(--bg-main); }
-        .btn-secondary:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--border-color); }
-        .task-card, .class-card { transition: all 0.2s ease-out; }
-        .task-card:hover, .class-card:hover { transform: translate(-4px, -4px); box-shadow: 8px 8px 0px var(--border-color); }
-        .input-field { background-color: var(--bg-main); color: var(--text-primary); border: 2px solid var(--border-color); border-radius: 0.5rem; padding: 0.75rem 1rem; width: 100%; transition: background-color 0.3s ease, border-color 0.3s ease; }
-        .input-field:focus { outline: none; box-shadow: 0 0 0 3px var(--accent-primary); }
-        .custom-checkbox { appearance: none; background-color: var(--bg-main); width: 1.5rem; height: 1.5rem; border: 2px solid var(--border-color); border-radius: 0.25rem; cursor: pointer; display: grid; place-content: center; flex-shrink: 0; transition: background-color 0.3s ease, border-color 0.3s ease; }
-        .custom-checkbox::before { content: ''; width: 0.75rem; height: 0.75rem; transform: scale(0); transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em var(--text-primary); transform-origin: bottom left; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); }
-        .custom-checkbox:checked { background-color: var(--accent-primary); }
-        .custom-checkbox:checked::before { transform: scale(1); }
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
-        .modal-overlay.active { opacity: 1; visibility: visible; }
-        .modal-content { transform: scale(0.9); transition: transform 0.3s ease, background-color 0.3s ease; }
-        .modal-overlay.active .modal-content { background-color: var(--bg-main); transform: scale(1); }
+        .text-secondary { color: var(--text-secondary); }
+
+        /* Header y Nav Fijos */
+        #desktop-header { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 40; width: 95%; max-width: 900px; }
+        #mobile-nav { position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 40; width: auto; border-radius: 1.5rem; }
+
+        /* Vistas y Navegación */
         .view { display: none; animation-duration: 0.4s; animation-fill-mode: forwards; }
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-10px); } }
         .view.is-entering { animation-name: fadeIn; }
         .view.is-exiting { animation-name: fadeOut; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-env); }
-        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-        .text-secondary { color: var(--text-secondary); }
-        .mobile-nav-btn.active, .desktop-nav-btn.active { color: var(--accent-primary) !important; text-decoration: underline; }
-        .mobile-nav-btn.active svg { color: var(--accent-primary) !important; }
-        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: var(--bg-env); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; opacity: 1; transition: opacity 0.5s ease-out; }
+
+        /* Adaptación de botones */
+        .pwa-button { padding: 0; }
+        .pwa-button .liquidGlass-text { padding: 0.75rem 1.5rem; text-align: center; }
+        .pwa-button:hover { transform: scale(1.05); }
+        .pwa-button-primary .liquidGlass-tint { background: rgba(0, 240, 255, 0.35); }
+        .pwa-button-primary:hover .liquidGlass-tint { background: rgba(0, 240, 255, 0.5); }
+        .pwa-button-danger .liquidGlass-tint { background: rgba(255, 71, 87, 0.35); }
+        .pwa-button-danger:hover .liquidGlass-tint { background: rgba(255, 71, 87, 0.5); }
+        .desktop-header-button { background-color: rgba(0, 240, 255, 0.35); color: var(--text-primary); padding: 0.6rem 1.25rem; border-radius: 1.25rem; font-weight: 600; transition: all 0.3s ease; box-shadow: inset 1px 1px 1px 0 rgba(255, 255, 255, 0.3), inset -1px -1px 1px 0 rgba(255, 255, 255, 0.1); }
+        .desktop-header-button:hover { background-color: rgba(0, 240, 255, 0.5); transform: scale(1.05); }
+
+        /* Tarjetas */
+        .task-card:hover, .class-card:hover { transform: scale(1.02); box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3); }
+        .next-class { box-shadow: 0 0 15px 4px var(--accent-primary), 0 6px 6px rgba(0, 0, 0, 0.2); }
+        
+        /* Formularios */
+        .input-field { background: rgba(0, 0, 0, 0.25); color: var(--text-primary); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 0.75rem; padding: 0.75rem 1rem; width: 100%; transition: all 0.3s ease; }
+        .input-field:focus { outline: none; background: rgba(0, 0, 0, 0.35); box-shadow: 0 0 0 3px var(--accent-primary); border-color: var(--accent-primary); }
+        .input-field::placeholder { color: var(--text-secondary); opacity: 0.7; }
+
+        /* Checkbox personalizado */
+        .custom-checkbox { appearance: none; background-color: rgba(0,0,0,0.2); width: 1.5rem; height: 1.5rem; border: 2px solid var(--text-secondary); border-radius: 0.25rem; cursor: pointer; display: grid; place-content: center; flex-shrink: 0; transition: all 0.3s ease; }
+        .custom-checkbox::before { content: ''; width: 0.75rem; height: 0.75rem; transform: scale(0); transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em var(--text-primary); transform-origin: bottom left; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); }
+        .custom-checkbox:checked { background-color: var(--accent-primary); border-color: var(--accent-primary); }
+        .custom-checkbox:checked::before { transform: scale(1); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 50; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+
+        /* Splash Screen (NUEVO) */
+        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; opacity: 1; transition: opacity 0.5s ease-out; background: linear-gradient(rgba(12, 10, 26, 0.7), rgba(12, 10, 26, 0.7)), url("https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/flowers.jpg") center center / cover; }
         #splash-screen.is-fading { opacity: 0; pointer-events: none; }
-        .switch { position: relative; display: inline-block; width: 60px; height: 34px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; border: 2px solid var(--border-color); }
-        .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; border: 2px solid var(--border-color); }
-        input:checked + .slider { background-color: var(--accent-primary); }
-        input:checked + .slider:before { transform: translateX(26px); }
-        .schedule-day-group { position: relative; }
-        .schedule-time-indicator { position: absolute; left: 0; right: 0; height: 2px; background-color: #E94560; z-index: 10; transition: top 0.5s linear; }
-        .schedule-time-indicator::before { content: '▶'; position: absolute; left: -20px; top: 50%; transform: translateY(-50%); color: #E94560; }
-        .next-class { box-shadow: 0 0 10px 3px var(--accent-primary); transform: scale(1.02); transition: all 0.3s ease-in-out; }
-        #reset-app-btn { transition: all 0.15s ease-out; }
-        #reset-app-btn:hover { background-color: #fca5a5 !important; transform: translate(-2px, -2px); box-shadow: 6px 6px 0px #dc2626; color: #991b1b; border-color: #dc2626; }
-        @media (min-width: 768px) and (min-aspect-ratio: 16/9) { #desktop-header { top: 1rem; left: 50%; transform: translateX(-50%); width: 95%; max-width: 1200px; border-radius: 0.75rem; border-width: 2px; box-shadow: 6px 6px 0px var(--border-color); } body { padding-top: 9rem; } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+        .splash-logo-container { animation: pulse 4s ease-in-out infinite; }
+        .splash-logo-container .liquidGlass-text { color: var(--dark-text); }
+        .splash-logo-container .liquidGlass-tint { background: var(--accent-primary); }
+
+        /* Horario */
+        .schedule-time-indicator { position: absolute; left: 0; right: 0; height: 2px; background-color: var(--danger-color); z-index: 10; transition: top 0.5s linear; }
+        .schedule-time-indicator::before { content: '▶'; position: absolute; left: -20px; top: 50%; transform: translateY(-50%); color: var(--danger-color); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 4px; }
+        
+        /* Estados Activos Nav (CORREGIDO) */
+        .desktop-nav-btn.active { color: var(--accent-primary) !important; font-weight: 700; background-color: rgba(0, 240, 255, 0.15); }
+        .mobile-nav-btn { transition: background-color 0.3s ease, color 0.3s ease; }
+        .mobile-nav-btn.active { background-color: var(--accent-primary); color: var(--dark-text) !important; }
+        .mobile-nav-btn.active svg { color: var(--dark-text) !important; }
     </style>
 </head>
 <body>
-    <!-- El resto del HTML (<body>) se mantiene igual, no es necesario pegarlo de nuevo -->
+
+    <!-- SPLASH SCREEN REDISEÑADO -->
     <div id="splash-screen">
-        <svg class="w-24 h-24 md:w-32 md:h-32 mb-4" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="25" y="25" width="50" height="50" class="neo-brutalist-flat" style="fill: var(--accent-primary); border-width: 4px;"/>
-        </svg>
-        <h1 class="font-heading text-4xl md:text-5xl uppercase">Fluir</h1>
-    </div>
-    <header id="desktop-header" class="hidden md:flex fixed top-0 left-0 right-0 z-40 items-center justify-between p-4 border-b-2" style="background-color: var(--bg-main); border-color: var(--border-color);">
-        <h1 class="font-heading text-3xl uppercase">Fluir</h1>
-        <div id="desktop-nav-links" class="flex items-center gap-6 font-bold text-lg">
-            <button id="desktop-dashboard-btn" class="desktop-nav-btn">Inicio</button>
-            <button id="desktop-schedule-btn" class="desktop-nav-btn">Horario</button>
-            <button id="desktop-calendar-btn" class="desktop-nav-btn">Calendario</button>
-            <button id="desktop-settings-btn" class="desktop-nav-btn">Ajustes</button>
+        <div class="splash-logo-container liquidGlass-wrapper w-64 h-64 md:w-80 md:h-80" style="border-radius: 9999px;">
+            <div class="liquidGlass-effect"></div>
+            <div class="liquidGlass-tint"></div>
+            <div class="liquidGlass-shine"></div>
+            <div class="liquidGlass-text flex flex-col items-center justify-center h-full">
+                <h1 class="font-heading text-6xl md:text-7xl uppercase">Fluir</h1>
+                <p class="text-lg font-semibold -mt-2">Carga inicial...</p>
+            </div>
         </div>
-        <button id="desktop-add-task-btn" class="neo-brutalist btn-primary font-bold flex items-center gap-2 px-4 py-2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Añadir Proyecto
-        </button>
+    </div>
+
+    <header id="desktop-header" class="hidden md:block liquidGlass-wrapper">
+        <div class="liquidGlass-effect"></div>
+        <div class="liquidGlass-tint"></div>
+        <div class="liquidGlass-shine"></div>
+        <div class="liquidGlass-text flex items-center justify-between p-2">
+            <h1 class="font-heading text-3xl uppercase">Fluir</h1>
+            <div id="desktop-nav-links" class="flex items-center gap-2 font-semibold text-lg">
+                <button id="desktop-dashboard-btn" class="desktop-nav-btn px-4 py-2 hover:bg-white/10 rounded-lg transition-colors">Inicio</button>
+                <button id="desktop-schedule-btn" class="desktop-nav-btn px-4 py-2 hover:bg-white/10 rounded-lg transition-colors">Horario</button>
+                <button id="desktop-calendar-btn" class="desktop-nav-btn px-4 py-2 hover:bg-white/10 rounded-lg transition-colors">Calendario</button>
+                <button id="desktop-settings-btn" class="desktop-nav-btn px-4 py-2 hover:bg-white/10 rounded-lg transition-colors">Ajustes</button>
+            </div>
+            <button id="desktop-add-task-btn" class="desktop-header-button flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Añadir Proyecto
+            </button>
+        </div>
     </header>
-    <main id="app-container" class="max-w-7xl mx-auto">
+    
+    <main id="app-container" class="w-full max-w-7xl mx-auto">
+        
         <section id="setup-view" class="view">
-            <div class="min-h-[80vh] flex flex-col items-center justify-center text-center p-4">
-                <h1 class="font-heading text-4xl md:text-6xl uppercase mb-4">¡Bienvenido/a a Fluir!</h1>
-                <p class="text-lg md:text-xl mb-12 max-w-2xl mx-auto text-secondary">Antes de empezar, dinos cómo te llamas.</p>
-                <form id="setup-form" class="w-full max-w-sm">
-                    <input type="text" id="username-input" class="input-field text-center text-2xl mb-8" placeholder="Escribe tu nombre aquí..." required>
-                    <button type="submit" class="neo-brutalist btn-primary font-bold text-xl md:text-2xl px-12 py-4">COMENZAR</button>
-                </form>
+            <div class="min-h-[70vh] flex flex-col items-center justify-center text-center p-4">
+                <div class="liquidGlass-wrapper w-full max-w-xl">
+                    <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                    <div class="liquidGlass-text">
+                        <h1 class="font-heading text-4xl md:text-6xl uppercase mb-4">¡Bienvenido/a a Fluir!</h1>
+                        <p class="text-lg md:text-xl mb-12 max-w-2xl mx-auto text-secondary">Antes de empezar, dinos cómo te llamas.</p>
+                        <form id="setup-form" class="w-full max-w-sm mx-auto">
+                            <input type="text" id="username-input" class="input-field text-center text-2xl mb-8" placeholder="Escribe tu nombre aquí..." required>
+                            <button type="submit" class="liquidGlass-wrapper pwa-button pwa-button-primary w-full">
+                                <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                                <div class="liquidGlass-text text-xl md:text-2xl">COMENZAR</div>
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </section>
-        <section id="dashboard-view" class="view">
-            <div id="greeting-section" class="mb-12 p-6 neo-brutalist-flat" style="background-color: var(--bg-main);">
-                <h1 id="greeting-text" class="font-heading text-3xl md:text-4xl uppercase"></h1>
-                <p id="dashboard-summary" class="text-secondary text-lg mt-1"></p>
-                <p id="motivational-quote" class="mt-4 italic text-secondary"></p>
+
+        <section id="dashboard-view" class="view space-y-8">
+            <div id="greeting-section" class="liquidGlass-wrapper">
+                <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                <div class="liquidGlass-text">
+                    <h1 id="greeting-text" class="font-heading text-3xl md:text-4xl uppercase"></h1>
+                    <p id="dashboard-summary" class="text-secondary text-lg mt-1"></p>
+                    <p id="motivational-quote" class="mt-4 italic text-secondary"></p>
+                </div>
             </div>
-            <div id="upcoming-classes-section" class="mb-12">
-                <h2 class="font-heading text-2xl uppercase mb-4">Próximas Clases</h2>
+
+            <div id="upcoming-classes-section">
+                <h2 class="font-heading text-2xl uppercase mb-4 ml-2">Próximas Clases</h2>
                 <div id="upcoming-classes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
-            <div id="pending-tasks-section" class="mb-12">
-                <h2 class="font-heading text-2xl uppercase mb-4">Tareas Pendientes</h2>
+
+            <div id="pending-tasks-section">
+                <h2 class="font-heading text-2xl uppercase mb-4 ml-2">Tareas Pendientes</h2>
                 <div id="pending-tasks-container" class="space-y-4"></div>
             </div>
-            <div id="completed-tasks-section" class="hidden mt-12">
+
+            <div id="completed-tasks-section" class="hidden">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="font-heading text-2xl uppercase">Completadas</h2>
-                    <button id="toggle-completed-btn" class="neo-brutalist btn-secondary text-sm font-bold px-3 py-1.5">Mostrar</button>
+                    <h2 class="font-heading text-2xl uppercase ml-2">Completadas</h2>
+                    <button id="toggle-completed-btn" class="liquidGlass-wrapper pwa-button">
+                        <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                        <div class="liquidGlass-text text-sm">Mostrar</div>
+                    </button>
                 </div>
                 <div id="completed-tasks-container" class="space-y-4 hidden"></div>
             </div>
         </section>
+
         <section id="details-view" class="view">
-             <div class="p-4 md:p-6 neo-brutalist-flat" style="background-color: var(--bg-main);">
-                <header class="flex justify-between items-center mb-6 pb-4 border-b-2" style="border-color: var(--border-color);">
-                    <button id="back-to-dashboard-btn" class="neo-brutalist btn-secondary font-bold flex items-center gap-2 px-4 py-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                        Volver
-                    </button>
-                    <button id="edit-task-btn" class="neo-brutalist btn-secondary font-bold flex items-center gap-2 px-4 py-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        Editar
-                    </button>
-                </header>
-                <div id="task-details-content"></div>
+             <div class="liquidGlass-wrapper">
+                <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                <div class="liquidGlass-text">
+                    <header class="flex justify-between items-center mb-6 pb-4 border-b-2 border-white/20">
+                        <button id="back-to-dashboard-btn" class="liquidGlass-wrapper pwa-button">
+                            <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                            <div class="liquidGlass-text flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                                Volver
+                            </div>
+                        </button>
+                        <button id="edit-task-btn" class="liquidGlass-wrapper pwa-button">
+                            <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                            <div class="liquidGlass-text flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                Editar
+                            </div>
+                        </button>
+                    </header>
+                    <div id="task-details-content"></div>
+                </div>
             </div>
         </section>
+
         <section id="form-view" class="view">
-             <div class="p-4 md:p-6 neo-brutalist-flat max-w-3xl mx-auto" style="background-color: var(--bg-main);">
-                 <header class="flex justify-between items-center mb-6"><h1 id="form-title" class="font-heading text-3xl md:text-4xl uppercase">Nuevo Proyecto</h1><button id="cancel-form-btn" class="neo-brutalist btn-secondary font-bold px-4 py-2">Cancelar</button></header>
-                <form id="task-form">
-                    <input type="hidden" id="task-id-input">
-                    <div class="mb-6"><label for="task-title" class="font-bold block mb-2">Título del Proyecto *</label><input type="text" id="task-title" class="input-field" required></div>
-                    <div class="mb-6"><label for="task-description" class="font-bold block mb-2">Descripción</label><textarea id="task-description" rows="4" class="input-field"></textarea></div>
-                    <div class="mb-6"><label for="task-due-date" class="font-bold block mb-2">Fecha y Hora de Entrega</label><input type="datetime-local" id="task-due-date" class="input-field"></div>
-                    <div class="mb-6"><label class="font-bold block mb-2">Color de la Tarjeta</label><div class="flex gap-4"><div class="flex items-center gap-2"><input type="radio" id="color-1" name="task-color" value="var(--card-color-1)" class="custom-checkbox" checked><label for="color-1" class="p-2 rounded" style="background-color: var(--card-color-1); border: 2px solid var(--border-color);">Color 1</label></div><div class="flex items-center gap-2"><input type="radio" id="color-2" name="task-color" value="var(--card-color-2)" class="custom-checkbox"><label for="color-2" class="p-2 rounded" style="background-color: var(--card-color-2); border: 2px solid var(--border-color);">Color 2</label></div></div></div>
-                    <div class="mb-8"><h3 class="font-bold mb-2">Subtareas</h3><div id="subtasks-form-list" class="space-y-2 mb-3"></div><button type="button" id="add-subtask-form-btn" class="neo-brutalist btn-secondary text-sm font-bold px-3 py-1.5">+ Añadir subtarea</button></div>
-                    <button type="submit" id="save-task-btn" class="w-full neo-brutalist btn-primary font-bold text-xl py-3">Crear Proyecto</button>
-                </form>
+             <div class="liquidGlass-wrapper max-w-3xl mx-auto">
+                <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                <div class="liquidGlass-text">
+                    <header class="flex justify-between items-center mb-6">
+                        <h1 id="form-title" class="font-heading text-3xl md:text-4xl uppercase">Nuevo Proyecto</h1>
+                        <button id="cancel-form-btn" class="liquidGlass-wrapper pwa-button">
+                            <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                            <div class="liquidGlass-text">Cancelar</div>
+                        </button>
+                    </header>
+                    <form id="task-form" class="space-y-6">
+                        <input type="hidden" id="task-id-input">
+                        <div><label for="task-title" class="font-bold block mb-2">Título del Proyecto *</label><input type="text" id="task-title" class="input-field" required></div>
+                        <div><label for="task-description" class="font-bold block mb-2">Descripción</label><textarea id="task-description" rows="4" class="input-field"></textarea></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div><label for="task-due-date" class="font-bold block mb-2">Fecha de Entrega</label><input type="datetime-local" id="task-due-date" class="input-field"></div>
+                            <div><label for="task-notification" class="font-bold block mb-2">Notificarme antes</label>
+                                <select id="task-notification" class="input-field">
+                                    <option value="none">Nunca</option><option value="10">10 minutos antes</option><option value="30">30 minutos antes</option><option value="60">1 hora antes</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 class="font-bold mb-2">Subtareas</h3>
+                            <div id="subtasks-form-list" class="space-y-2 mb-3"></div>
+                            <button type="button" id="add-subtask-form-btn" class="liquidGlass-wrapper pwa-button">
+                                <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                                <div class="liquidGlass-text text-sm">+ Añadir subtarea</div>
+                            </button>
+                        </div>
+                        <button type="submit" id="save-task-btn" class="w-full liquidGlass-wrapper pwa-button pwa-button-primary">
+                            <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                            <div id="save-task-btn-text" class="liquidGlass-text text-xl">Crear Proyecto</div>
+                        </button>
+                    </form>
+                </div>
             </div>
         </section>
+
         <section id="subject-form-view" class="view">
-            <div class="p-4 md:p-6 neo-brutalist-flat max-w-3xl mx-auto" style="background-color: var(--bg-main);">
-                <header class="flex justify-between items-center mb-6"><h1 id="subject-form-title" class="font-heading text-3xl md:text-4xl uppercase">Nueva Materia</h1><button id="cancel-subject-form-btn" class="neo-brutalist btn-secondary font-bold px-4 py-2">Cancelar</button></header>
-               <form id="subject-form">
-                   <input type="hidden" id="subject-id-input">
-                   <div class="mb-6"><label for="subject-name" class="font-bold block mb-2">Nombre de la Materia *</label><input type="text" id="subject-name" class="input-field" required></div>
-                   <div class="mb-6"><label for="subject-day" class="font-bold block mb-2">Día de la Semana *</label>
-                        <select id="subject-day" class="input-field" required>
-                            <option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="0">Domingo</option>
-                        </select>
-                   </div>
-                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                       <div><label for="subject-start-time" class="font-bold block mb-2">Hora de Inicio *</label><input type="time" id="subject-start-time" class="input-field" required></div>
-                       <div><label for="subject-end-time" class="font-bold block mb-2">Hora de Fin *</label><input type="time" id="subject-end-time" class="input-field" required></div>
-                   </div>
-                   <button type="submit" id="save-subject-btn" class="w-full neo-brutalist btn-primary font-bold text-xl py-3">Añadir Materia</button>
-               </form>
+            <div class="liquidGlass-wrapper max-w-3xl mx-auto">
+                <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                <div class="liquidGlass-text">
+                    <header class="flex justify-between items-center mb-6">
+                        <h1 id="subject-form-title" class="font-heading text-3xl md:text-4xl uppercase">Nueva Materia</h1>
+                        <button id="cancel-subject-form-btn" class="liquidGlass-wrapper pwa-button">
+                            <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                            <div class="liquidGlass-text">Cancelar</div>
+                        </button>
+                    </header>
+                   <form id="subject-form" class="space-y-6">
+                       <input type="hidden" id="subject-id-input">
+                       <div><label for="subject-name" class="font-bold block mb-2">Nombre de la Materia *</label><input type="text" id="subject-name" class="input-field" required></div>
+                       <div><label for="subject-day" class="font-bold block mb-2">Día de la Semana *</label>
+                            <select id="subject-day" class="input-field" required>
+                                <option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="0">Domingo</option>
+                            </select>
+                       </div>
+                       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div><label for="subject-start-time" class="font-bold block mb-2">Hora de Inicio *</label><input type="time" id="subject-start-time" class="input-field" required></div>
+                           <div><label for="subject-end-time" class="font-bold block mb-2">Hora de Fin *</label><input type="time" id="subject-end-time" class="input-field" required></div>
+                       </div>
+                       <button type="submit" id="save-subject-btn" class="w-full liquidGlass-wrapper pwa-button pwa-button-primary">
+                            <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                            <div id="save-subject-btn-text" class="liquidGlass-text font-bold text-xl">Añadir Materia</div>
+                       </button>
+                   </form>
+               </div>
            </div>
        </section>
+
         <section id="settings-view" class="view">
-            <div class="p-4 md:p-6 neo-brutalist-flat max-w-4xl mx-auto" style="background-color: var(--bg-main);">
-                <h1 class="font-heading text-3xl uppercase mb-6">Configuración</h1>
-                <div class="mb-12">
-                    <h2 class="font-heading text-2xl uppercase mb-4">Apariencia</h2>
-                    <div class="flex justify-between items-center mb-8"><span class="font-bold">Modo Inmersivo (Pantalla Completa)</span><label class="switch"><input type="checkbox" id="immersive-mode-switch"><span class="slider"></span></label></div>
-                    <div id="theme-selector" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4"></div>
-                </div>
-                <div id="grades-section" class="mb-12">
-                    <h2 class="font-heading text-2xl uppercase mb-4">Calificaciones</h2>
-                    <div id="grades-container" class="space-y-4"></div>
-                </div>
-                <div class="mb-12">
-                    <h2 class="font-heading text-2xl uppercase mb-4">Crear Copia de Seguridad</h2>
-                    <button id="export-btn" class="w-full neo-brutalist btn-secondary font-bold text-lg py-3">Exportar a archivo .flu</button><p class="text-sm text-secondary mt-2">Guarda todos tus tareas, horario y calificaciones en un archivo.</p>
-                </div>
-                <div class="mb-12">
-                    <h2 class="font-heading text-2xl uppercase mb-4">Restaurar Copia de Seguridad</h2>
-                    <button id="import-btn" class="w-full neo-brutalist btn-secondary font-bold text-lg py-3">Importar desde .flu</button><input type="file" id="import-file-input" accept=".flu,.json" class="hidden"><p class="text-sm text-secondary mt-2">Reemplaza tus datos actuales con los de un archivo de respaldo.</p>
-                </div>
-                <div>
-                    <h2 class="font-heading text-2xl uppercase mb-4 text-red-500">Zona de Peligro</h2>
-                    <button id="reset-app-btn" class="w-full neo-brutalist font-bold text-lg py-3 border-red-500 text-red-700" style="background-color: #fee2e2;">Reiniciar Aplicación</button><p class="text-sm text-secondary mt-2">Borra permanentemente todos tus datos y configuraciones.</p>
-                </div>
-            </div>
-        </section>
-        <section id="calendar-view" class="view">
-            <div class="p-4 md:p-6 neo-brutalist-flat max-w-5xl mx-auto" style="background-color: var(--bg-main);">
-                <header class="flex justify-between items-center mb-6">
-                    <h1 id="calendar-title-desktop" class="font-heading text-2xl md:text-3xl uppercase">Calendario</h1>
-                    <div class="flex items-center gap-2">
-                        <button id="calendar-prev-month-btn" class="neo-brutalist btn-secondary font-bold p-2" aria-label="Mes anterior"><</button>
-                        <button id="calendar-next-month-btn" class="neo-brutalist btn-secondary font-bold p-2" aria-label="Mes siguiente">></button>
+            <div class="liquidGlass-wrapper max-w-4xl mx-auto">
+                <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                <div class="liquidGlass-text space-y-12">
+                    <h1 class="font-heading text-3xl uppercase">Configuración</h1>
+                    
+                    <!-- NUEVA SECCIÓN: APARIENCIA -->
+                    <div id="appearance-section">
+                        <h2 class="font-heading text-2xl uppercase mb-4">Apariencia</h2>
+                        <div class="space-y-4">
+                            <div>
+                                <label for="wallpaper-url-input" class="font-bold block mb-2">Fondo desde URL</label>
+                                <div class="flex gap-2"><input type="text" id="wallpaper-url-input" class="input-field flex-1" placeholder="https://..."><button id="save-wallpaper-url-btn" class="pwa-button liquidGlass-wrapper"><div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text !py-2">Guardar</div></button></div>
+                            </div>
+                             <div>
+                                <label for="wallpaper-file-input" class="font-bold block mb-2">Fondo desde archivo local</label>
+                                <input type="file" id="wallpaper-file-input" accept="image/*" class="input-field">
+                            </div>
+                            <button id="reset-wallpaper-btn" class="w-full md:w-auto liquidGlass-wrapper pwa-button"><div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text">Restaurar fondo por defecto</div></button>
+                        </div>
                     </div>
-                </header>
-                <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center font-bold mb-4"></div>
-                <div id="calendar-tasks-list"><h3 class="font-heading text-xl uppercase mb-2">Tareas del día:</h3><div id="calendar-tasks-container" class="space-y-2"><p class="text-secondary">Selecciona un día para ver las tareas.</p></div></div>
+
+                    <!-- NUEVA SECCIÓN: NOTIFICACIONES -->
+                    <div id="notifications-section">
+                        <h2 class="font-heading text-2xl uppercase mb-4">Notificaciones</h2>
+                        <div>
+                            <label for="class-notification-select" class="font-bold block mb-2">Notificarme antes de cada clase</label>
+                            <select id="class-notification-select" class="input-field">
+                                <option value="none">Nunca</option><option value="10">10 minutos antes</option><option value="30">30 minutos antes</option><option value="60">1 hora antes</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="grades-section">
+                        <h2 class="font-heading text-2xl uppercase mb-4">Calificaciones</h2>
+                        <div id="grades-container" class="space-y-4"></div>
+                    </div>
+                    <div>
+                        <h2 class="font-heading text-2xl uppercase mb-4">Copia de Seguridad</h2>
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <button id="export-btn" class="flex-1 liquidGlass-wrapper pwa-button"><div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text">Exportar a .flu</div></button>
+                            <button id="import-btn" class="flex-1 liquidGlass-wrapper pwa-button"><div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text">Importar desde .flu</div></button>
+                        </div>
+                        <input type="file" id="import-file-input" accept=".flu,.json" class="hidden">
+                        <p class="text-sm text-secondary mt-2">Guarda o restaura todos tus datos desde un archivo.</p>
+                    </div>
+                    <div>
+                        <h2 class="font-heading text-2xl uppercase mb-4" style="color: var(--danger-color);">Zona de Peligro</h2>
+                        <button id="reset-app-btn" class="w-full liquidGlass-wrapper pwa-button pwa-button-danger">
+                            <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                            <div class="liquidGlass-text font-bold text-lg">Reiniciar Aplicación</div>
+                        </button>
+                        <p class="text-sm text-secondary mt-2">Borra permanentemente todos tus datos y configuraciones.</p>
+                    </div>
+                </div>
             </div>
         </section>
+
+        <section id="calendar-view" class="view">
+            <div class="liquidGlass-wrapper max-w-5xl mx-auto">
+                <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                <div class="liquidGlass-text">
+                    <header class="flex justify-between items-center mb-6">
+                        <h1 id="calendar-title-desktop" class="font-heading text-2xl md:text-3xl uppercase">Calendario</h1>
+                        <div class="flex items-center gap-2">
+                            <button id="calendar-prev-month-btn" class="liquidGlass-wrapper pwa-button"><div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text text-xl px-4">&lt;</div></button>
+                            <button id="calendar-next-month-btn" class="liquidGlass-wrapper pwa-button"><div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text text-xl px-4">&gt;</div></button>
+                        </div>
+                    </header>
+                    <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center font-bold mb-4"></div>
+                    <div id="calendar-tasks-list"><h3 class="font-heading text-xl uppercase mb-2">Tareas del día:</h3><div id="calendar-tasks-container" class="space-y-2"><p class="text-secondary">Selecciona un día para ver las tareas.</p></div></div>
+                </div>
+            </div>
+        </section>
+
         <section id="schedule-view" class="view">
-            <div class="p-4 md:p-6 neo-brutalist-flat max-w-4xl mx-auto" style="background-color: var(--bg-main);">
-                <header class="flex justify-between items-center mb-8">
-                    <h1 class="font-heading text-3xl md:text-4xl uppercase">Horario Semanal</h1>
-                    <button id="add-subject-btn" class="neo-brutalist btn-primary font-bold flex items-center gap-2 px-4 py-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                        Añadir Materia
-                    </button>
-                </header>
-                <div id="schedule-list-container" class="space-y-8"></div>
+            <div class="liquidGlass-wrapper max-w-4xl mx-auto">
+                <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                <div class="liquidGlass-text">
+                    <header class="flex justify-between items-center mb-8">
+                        <h1 class="font-heading text-3xl md:text-4xl uppercase">Horario Semanal</h1>
+                        <button id="add-subject-btn" class="liquidGlass-wrapper pwa-button pwa-button-primary">
+                            <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                            <div class="liquidGlass-text flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Añadir Materia
+                            </div>
+                        </button>
+                    </header>
+                    <div id="schedule-list-container" class="space-y-8"></div>
+                </div>
             </div>
         </section>
+
     </main>
+    
     <div id="subtask-modal" class="modal-overlay">
-        <div class="modal-content neo-brutalist w-11/12 max-w-md p-6"><h2 class="font-heading text-2xl uppercase mb-4">Añadir Subtarea</h2><input type="text" id="subtask-input" class="input-field mb-4" placeholder="Descripción de la subtarea..."><div class="flex gap-4"><button id="confirm-add-subtask-btn" class="flex-1 neo-brutalist btn-primary font-bold py-2">Añadir</button><button id="cancel-add-subtask-btn" class="flex-1 neo-brutalist btn-secondary font-bold py-2">Cancelar</button></div></div>
+        <div class="modal-content liquidGlass-wrapper w-11/12 max-w-md">
+            <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+            <div class="liquidGlass-text">
+                <h2 class="font-heading text-2xl uppercase mb-4">Añadir Subtarea</h2>
+                <input type="text" id="subtask-input" class="input-field mb-4" placeholder="Descripción de la subtarea...">
+                <div class="flex gap-4">
+                    <button id="confirm-add-subtask-btn" class="flex-1 liquidGlass-wrapper pwa-button pwa-button-primary"><div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text">Añadir</div></button>
+                    <button id="cancel-add-subtask-btn" class="flex-1 liquidGlass-wrapper pwa-button"><div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text">Cancelar</div></button>
+                </div>
+            </div>
+        </div>
     </div>
-    <nav id="mobile-nav" class="md:hidden fixed bottom-0 left-0 right-0 h-20 grid grid-cols-5 items-center justify-around p-2 border-t-2" style="background-color: var(--bg-main); border-color: var(--border-color); z-index: 40;">
-        <button id="mobile-dashboard-btn" class="mobile-nav-btn flex flex-col items-center justify-center text-center"><svg class="w-7 h-7 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span class="text-xs font-bold">Inicio</span></button>
-        <button id="mobile-schedule-btn" class="mobile-nav-btn flex flex-col items-center justify-center text-center"><svg class="w-7 h-7 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path><path d="M6 4h2v2H6V4z"></path><path d="M6 10h2v2H6v-2z"></path><path d="M6 16h2v2H6v-2z"></path><path d="M12 4h2v2h-2V4z"></path><path d="M12 10h2v2h-2v-2z"></path><path d="M12 16h2v2h-2v-2z"></path></svg><span class="text-xs font-bold">Horario</span></button>
-        <div class="flex justify-center"><button id="mobile-add-task-btn" class="neo-brutalist btn-primary w-16 h-16 rounded-full flex items-center justify-center -mt-8" aria-label="Añadir Nuevo Proyecto"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button></div>
-        <button id="mobile-calendar-btn" class="mobile-nav-btn flex flex-col items-center justify-center text-center"><svg class="w-7 h-7 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span class="text-xs font-bold">Calendario</span></button>
-        <button id="mobile-settings-btn" class="mobile-nav-btn flex flex-col items-center justify-center text-center"><svg class="w-7 h-7 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-4.44a2 2 0 0 0-2 2v.77a2 2 0 0 1-1.11 1.79l-1.44.82a2 2 0 0 0-1.11 1.79v4.86a2 2 0 0 0 1.11 1.79l1.44.82a2 2 0 0 1 1.11 1.79v.77a2 2 0 0 0 2 2h4.44a2 2 0 0 0 2-2v-.77a2 2 0 0 1 1.11-1.79l1.44-.82a2 2 0 0 0 1.11-1.79v-4.86a2 2 0 0 0-1.11-1.79l-1.44-.82a2 2 0 0 1-1.11-1.79V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg><span class="text-xs font-bold">Ajustes</span></button>
+
+    <!-- NAVEGACIÓN MÓVIL CORREGIDA -->
+    <nav id="mobile-nav" class="md:hidden liquidGlass-wrapper">
+        <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+        <div class="liquidGlass-text grid grid-cols-5 items-center justify-around p-1">
+            <button id="mobile-dashboard-btn" class="mobile-nav-btn flex flex-col items-center justify-center text-center p-2 rounded-lg"><svg class="w-7 h-7 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span class="text-xs font-bold">Inicio</span></button>
+            <button id="mobile-schedule-btn" class="mobile-nav-btn flex flex-col items-center justify-center text-center p-2 rounded-lg"><svg class="w-7 h-7 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path><path d="M6 4h2v2H6V4z"></path><path d="M6 10h2v2H6v-2z"></path><path d="M6 16h2v2H6v-2z"></path><path d="M12 4h2v2h-2V4z"></path><path d="M12 10h2v2h-2v-2z"></path><path d="M12 16h2v2h-2v-2z"></path></svg><span class="text-xs font-bold">Horario</span></button>
+            <div class="flex justify-center"><button id="mobile-add-task-btn" class="liquidGlass-wrapper pwa-button pwa-button-primary w-14 h-14 rounded-full flex items-center justify-center -mt-6" style="border-radius: 9999px;" aria-label="Añadir Nuevo Proyecto"><div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text p-0"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></div></button></div>
+            <button id="mobile-calendar-btn" class="mobile-nav-btn flex flex-col items-center justify-center text-center p-2 rounded-lg"><svg class="w-7 h-7 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span class="text-xs font-bold">Calendario</span></button>
+            <button id="mobile-settings-btn" class="mobile-nav-btn flex flex-col items-center justify-center text-center p-2 rounded-lg"><svg class="w-7 h-7 mb-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-4.44a2 2 0 0 0-2 2v.77a2 2 0 0 1-1.11 1.79l-1.44.82a2 2 0 0 0-1.11 1.79v4.86a2 2 0 0 0 1.11 1.79l1.44.82a2 2 0 0 1 1.11 1.79v.77a2 2 0 0 0 2 2h4.44a2 2 0 0 0 2-2v-.77a2 2 0 0 1 1.11-1.79l1.44-.82a2 2 0 0 0 1.11-1.79v-4.86a2 2 0 0 0-1.11-1.79l-1.44-.82a2 2 0 0 1-1.11-1.79V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg><span class="text-xs font-bold">Ajustes</span></button>
+        </div>
     </nav>
+    
+    <svg style="display: none">
+      <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
+        <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence"/>
+        <feComponentTransfer in="turbulence" result="mapped"><feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" /><feFuncG type="gamma" amplitude="0" exponent="1" offset="0" /><feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" /></feComponentTransfer>
+        <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+        <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight"><fePointLight x="-200" y="-200" z="300" /></feSpecularLighting>
+        <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage"/>
+        <feDisplacementMap in="SourceGraphic" in2="softMap" scale="150" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </svg>
+
     <script>
-        // [El resto del JavaScript se mantiene igual, no es necesario pegarlo de nuevo]
-        document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
+        // SELECTORES DE ELEMENTOS
         const splashScreen = document.getElementById('splash-screen');
         const views = { setup: document.getElementById('setup-view'), dashboard: document.getElementById('dashboard-view'), details: document.getElementById('details-view'), form: document.getElementById('form-view'), settings: document.getElementById('settings-view'), calendar: document.getElementById('calendar-view'), schedule: document.getElementById('schedule-view'), subjectForm: document.getElementById('subject-form-view') };
         const buttons = {
@@ -257,12 +506,13 @@
             mobileDashboard: document.getElementById('mobile-dashboard-btn'), mobileCalendar: document.getElementById('mobile-calendar-btn'), mobileSchedule: document.getElementById('mobile-schedule-btn'),
             mobileSettings: document.getElementById('mobile-settings-btn'), mobileAddTask: document.getElementById('mobile-add-task-btn'),
             desktopDashboard: document.getElementById('desktop-dashboard-btn'), desktopCalendar: document.getElementById('desktop-calendar-btn'), desktopSchedule: document.getElementById('desktop-schedule-btn'),
-            desktopSettings: document.getElementById('desktop-settings-btn'), desktopAddTask: document.getElementById('desktop-add-task-btn')
+            desktopSettings: document.getElementById('desktop-settings-btn'), desktopAddTask: document.getElementById('desktop-add-task-btn'),
+            saveWallpaperUrl: document.getElementById('save-wallpaper-url-btn'), resetWallpaper: document.getElementById('reset-wallpaper-btn')
         };
-        const inputs = { username: document.getElementById('username-input'), importFile: document.getElementById('import-file-input'), immersiveModeSwitch: document.getElementById('immersive-mode-switch') };
+        const inputs = { username: document.getElementById('username-input'), importFile: document.getElementById('import-file-input'), wallpaperUrl: document.getElementById('wallpaper-url-input'), wallpaperFile: document.getElementById('wallpaper-file-input'), classNotification: document.getElementById('class-notification-select') };
         const containers = {
             pendingTasks: document.getElementById('pending-tasks-container'), upcomingClasses: document.getElementById('upcoming-classes-container'), completedTasks: document.getElementById('completed-tasks-container'), completedTasksSection: document.getElementById('completed-tasks-section'),
-            taskDetails: document.getElementById('task-details-content'), subtasksFormList: document.getElementById('subtasks-form-list'), themeSelector: document.getElementById('theme-selector'),
+            taskDetails: document.getElementById('task-details-content'), subtasksFormList: document.getElementById('subtasks-form-list'),
             calendarGrid: document.getElementById('calendar-grid'), calendarTitleDesktop: document.getElementById('calendar-title-desktop'),
             calendarTasks: document.getElementById('calendar-tasks-container'), scheduleList: document.getElementById('schedule-list-container'), grades: document.getElementById('grades-container'),
             greetingText: document.getElementById('greeting-text'), dashboardSummary: document.getElementById('dashboard-summary'), motivationalQuote: document.getElementById('motivational-quote')
@@ -270,28 +520,101 @@
         const formElements = {
             setupForm: document.getElementById('setup-form'),
             form: document.getElementById('task-form'), formTitle: document.getElementById('form-title'), taskIdInput: document.getElementById('task-id-input'), title: document.getElementById('task-title'),
-            description: document.getElementById('task-description'), dueDate: document.getElementById('task-due-date'), color1: document.getElementById('color-1'), color2: document.getElementById('color-2')
+            description: document.getElementById('task-description'), dueDate: document.getElementById('task-due-date'), notification: document.getElementById('task-notification')
         };
         const subjectFormElements = {
             form: document.getElementById('subject-form'), formTitle: document.getElementById('subject-form-title'), idInput: document.getElementById('subject-id-input'), name: document.getElementById('subject-name'),
             day: document.getElementById('subject-day'), startTime: document.getElementById('subject-start-time'), endTime: document.getElementById('subject-end-time')
         };
         const modal = { element: document.getElementById('subtask-modal'), input: document.getElementById('subtask-input'), confirmBtn: document.getElementById('confirm-add-subtask-btn'), cancelBtn: document.getElementById('cancel-add-subtask-btn'), addBtnForm: document.getElementById('add-subtask-form-btn') };
-        let state = { userName: null, tasks: [], schedule: [], grades: {}, currentView: 'setup', selectedTaskId: null, selectedSubjectId: null, tempSubtasks: [], calendarDate: new Date() };
+
+        // ESTADO DE LA APLICACIÓN (con nuevas propiedades)
+        let state = { userName: null, tasks: [], schedule: [], grades: {}, currentView: 'setup', selectedTaskId: null, selectedSubjectId: null, tempSubtasks: [], calendarDate: new Date(), wallpaper: null, classNotification: 'none' };
         let countdownInterval = null;
         let scheduleInterval = null;
+        let notificationInterval = null;
         let subtaskModalContext = { isFormContext: false, taskId: null };
-        const themes = [ { id: 'default-light', name: 'Original' }, { id: 'pastel-dream-light', name: 'Pastel' }, { id: 'mint-choco-light', name: 'Menta' }, { id: 'autumn-crisp-light', name: 'Otoño' }, { id: 'beach-day-light', name: 'Playa' }, { id: 'deep-space-dark', name: 'Espacio' }, { id: 'forest-night-dark', name: 'Bosque' }, { id: 'vampire-dark', name: 'Vampiro' }, { id: 'cyberpunk-dark', name: 'Cyber' }, { id: 'cozy-autumn-dark', name: 'Otoño Osc' }];
         const motivationalQuotes = [ "El secreto para salir adelante es empezar.", "La disciplina es el puente entre las metas y los logros.", "No mires el reloj; haz lo que él hace. Sigue moviéndote.", "El éxito es la suma de pequeños esfuerzos repetidos día tras día.", "Cree que puedes y ya estás a medio camino." ];
-        function loadData() { const savedData = localStorage.getItem('fluir-app-data'); if (savedData) { const parsedData = JSON.parse(savedData); state.userName = parsedData.userName || null; state.tasks = parsedData.tasks || []; state.schedule = parsedData.schedule || []; state.grades = parsedData.grades || {}; } }
-        function saveData() { localStorage.setItem('fluir-app-data', JSON.stringify({ userName: state.userName, tasks: state.tasks, schedule: state.schedule, grades: state.grades })); }
-        function exportData() { if (!state.userName) return alert("No hay datos para exportar."); const dataStr = JSON.stringify({ userName: state.userName, tasks: state.tasks, schedule: state.schedule, grades: state.grades }, null, 2); const dataBlob = new Blob([dataStr], {type: "application/json"}); const url = URL.createObjectURL(dataBlob); const a = document.createElement('a'); a.href = url; a.download = `fluir_backup_${new Date().toISOString().split('T')[0]}.flu`; a.click(); URL.revokeObjectURL(url); }
-        function importData(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const importedData = JSON.parse(e.target.result); if (typeof importedData !== 'object' || !importedData.userName) throw new Error("Formato inválido."); if (confirm("¿Quieres sobrescribir tus datos actuales?")) { state.userName = importedData.userName; state.tasks = importedData.tasks || []; state.schedule = importedData.schedule || []; state.grades = importedData.grades || {}; saveData(); renderDashboard(); navigateTo('dashboard'); alert("¡Datos importados!"); } } catch (error) { alert(`Error al importar: ${error.message}`); } }; reader.readAsText(file); event.target.value = ''; }
-        function applyTheme(themeId) { document.documentElement.dataset.theme = themeId; localStorage.setItem('fluir-theme', themeId); const style = getComputedStyle(document.documentElement); document.querySelector('label[for="color-1"]').style.backgroundColor = style.getPropertyValue('--card-color-1').trim(); document.querySelector('label[for="color-1"]').style.borderColor = style.getPropertyValue('--border-color').trim(); document.querySelector('label[for="color-2"]').style.backgroundColor = style.getPropertyValue('--card-color-2').trim(); document.querySelector('label[for="color-2"]').style.borderColor = style.getPropertyValue('--border-color').trim(); }
+
+        // --- GESTOR DE NOTIFICACIONES ---
+        const notificationManager = {
+            permissionGranted: false,
+            requestPermission: function() {
+                if (!("Notification" in window)) {
+                    console.log("Este navegador no soporta notificaciones de escritorio.");
+                    return;
+                }
+                if (Notification.permission === "granted") {
+                    this.permissionGranted = true;
+                } else if (Notification.permission !== "denied") {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === "granted") {
+                            this.permissionGranted = true;
+                        }
+                    });
+                }
+            },
+            sendNotification: function(title, options) {
+                if (!this.permissionGranted) return;
+                new Notification(title, options);
+            },
+            checkAndNotify: function() {
+                const now = new Date();
+                // Notificaciones de Tareas
+                state.tasks.forEach(task => {
+                    if (task.completed || !task.dueDate || task.notification === 'none' || task.notificationSent) return;
+                    const dueDate = new Date(task.dueDate);
+                    const notificationTime = new Date(dueDate.getTime() - task.notification * 60000);
+                    if (now >= notificationTime && now < dueDate) {
+                        this.sendNotification(`¡Recordatorio de Tarea!`, { body: `"${task.title}" vence pronto.`, icon: './favicon.ico' });
+                        task.notificationSent = true; // Marcar para no volver a notificar
+                        saveData();
+                    }
+                });
+                // Notificaciones de Clases
+                if (state.classNotification !== 'none') {
+                    const today = now.getDay();
+                    const classesToday = state.schedule.filter(s => s.day === today);
+                    classesToday.forEach(c => {
+                        const [hours, minutes] = c.startTime.split(':');
+                        const classTime = new Date();
+                        classTime.setHours(hours, minutes, 0, 0);
+                        const notificationTime = new Date(classTime.getTime() - state.classNotification * 60000);
+                        const notificationId = `class-${c.id}-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+                        if (now >= notificationTime && now < classTime && !localStorage.getItem(notificationId)) {
+                             this.sendNotification(`¡Clase por Empezar!`, { body: `Tu clase de "${c.name}" comienza a las ${c.startTime}.`, icon: './favicon.ico' });
+                             localStorage.setItem(notificationId, 'sent'); // Evitar notificaciones repetidas para la misma clase el mismo día
+                        }
+                    });
+                }
+            },
+            start: function() {
+                this.requestPermission();
+                if (notificationInterval) clearInterval(notificationInterval);
+                notificationInterval = setInterval(() => this.checkAndNotify(), 30000); // Chequear cada 30 segundos
+            }
+        };
+
+        // --- LÓGICA DE DATOS Y CONFIGURACIÓN ---
+        function loadData() { const savedData = localStorage.getItem('fluir-app-data'); if (savedData) { const parsedData = JSON.parse(savedData); state = { ...state, ...parsedData }; } }
+        function saveData() { localStorage.setItem('fluir-app-data', JSON.stringify(state)); }
+        function exportData() { if (!state.userName) return alert("No hay datos para exportar."); const dataToExport = { ...state }; if (state.wallpaper && state.wallpaper.startsWith('data:')) { dataToExport.wallpaper = null; } const dataStr = JSON.stringify(dataToExport, null, 2); const dataBlob = new Blob([dataStr], {type: "application/json"}); const url = URL.createObjectURL(dataBlob); const a = document.createElement('a'); a.href = url; a.download = `fluir_backup_${new Date().toISOString().split('T')[0]}.flu`; a.click(); URL.revokeObjectURL(url); }
+        function importData(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { try { const importedData = JSON.parse(e.target.result); if (typeof importedData !== 'object' || !importedData.userName) throw new Error("Formato inválido."); if (confirm("¿Quieres sobrescribir tus datos actuales?")) { state = { ...state, ...importedData }; saveData(); applyWallpaper(); location.reload(); alert("¡Datos importados! La aplicación se recargará."); } } catch (error) { alert(`Error al importar: ${error.message}`); } }; reader.readAsText(file); event.target.value = ''; }
         function resetApp() { if(confirm("¡ADVERTENCIA!\n¿Estás seguro de que quieres reiniciar la aplicación?")){ localStorage.clear(); location.reload(); } }
-        function enterFullscreen() { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen(); }
-        function exitFullscreen() { if (document.exitFullscreen) document.exitFullscreen(); }
-        function toggleImmersiveMode(force) { const isImmersive = force !== undefined ? force : inputs.immersiveModeSwitch.checked; if (isImmersive) enterFullscreen(); else exitFullscreen(); localStorage.setItem('fluir-immersive', isImmersive); inputs.immersiveModeSwitch.checked = isImmersive; }
+        
+        // --- LÓGICA DE APARIENCIA ---
+        function applyWallpaper() {
+            if (state.wallpaper) {
+                document.body.style.backgroundImage = `url('${state.wallpaper}')`;
+            } else {
+                document.body.style.backgroundImage = `url("https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/flowers.jpg")`;
+            }
+        }
+        function handleWallpaperUrl() { const url = inputs.wallpaperUrl.value.trim(); if (url) { state.wallpaper = url; saveData(); applyWallpaper(); alert('Fondo actualizado.'); } else { alert('Por favor, introduce una URL válida.'); } }
+        function handleWallpaperFile(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = e => { try { state.wallpaper = e.target.result; saveData(); applyWallpaper(); alert('Fondo actualizado.'); } catch (error) { alert('No se pudo cargar la imagen.'); } }; reader.readAsDataURL(file); }
+        function resetWallpaper() { state.wallpaper = null; saveData(); applyWallpaper(); inputs.wallpaperUrl.value = ''; inputs.wallpaperFile.value = ''; }
+
+        // --- LÓGICA DE NAVEGACIÓN ---
         function navigateTo(viewName) {
             if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
             if (scheduleInterval) { clearInterval(scheduleInterval); scheduleInterval = null; }
@@ -305,31 +628,38 @@
                     state.currentView = viewName; updateNavActiveState(viewName); window.scrollTo(0, 0);
                     if (viewName === 'dashboard') { renderDashboard(); startCountdownTimers(); }
                     if (viewName === 'schedule') { startScheduleUpdater(); }
-                    if (viewName === 'settings') { renderGrades(); }
+                    if (viewName === 'settings') { renderSettings(); }
                 }, 400);
             }
         }
         function updateNavActiveState(activeView) {
-            const mobileMapping = { dashboard: buttons.mobileDashboard, calendar: buttons.mobileCalendar, settings: buttons.mobileSettings, schedule: buttons.mobileSchedule };
-            Object.values(mobileMapping).forEach(btn => btn.classList.remove('active'));
-            if (mobileMapping[activeView]) mobileMapping[activeView].classList.add('active');
-            const desktopMapping = { dashboard: buttons.desktopDashboard, calendar: buttons.desktopCalendar, settings: buttons.desktopSettings, schedule: buttons.desktopSchedule };
-            Object.values(desktopMapping).forEach(btn => btn.classList.remove('active'));
-            if (desktopMapping[activeView]) desktopMapping[activeView].classList.add('active');
+            document.querySelectorAll('.mobile-nav-btn, .desktop-nav-btn').forEach(btn => btn.classList.remove('active'));
+            const viewMappings = ['dashboard', 'schedule', 'calendar', 'settings'];
+            viewMappings.forEach(view => {
+                if (activeView === view) {
+                    document.getElementById(`mobile-${view}-btn`)?.classList.add('active');
+                    document.getElementById(`desktop-${view}-btn`)?.classList.add('active');
+                }
+            });
         }
-        function updateCountdownTimers() { document.querySelectorAll('.countdown-timer').forEach(timer => { const dueDate = new Date(timer.dataset.dueDate); const now = new Date(); const diff = dueDate - now; if (diff <= 0) { timer.innerHTML = '<span class="text-red-500 font-bold">Vencido</span>'; return; } const d = Math.floor(diff / (1000 * 60 * 60 * 24)); const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)); const s = Math.floor((diff % (1000 * 60)) / 1000); timer.textContent = `${d > 0 ? d + 'd ' : ''}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; }); }
+        
+        // --- LÓGICA DEL CONTADOR ---
+        function updateCountdownTimers() { document.querySelectorAll('.countdown-timer').forEach(timer => { const dueDate = new Date(timer.dataset.dueDate); const now = new Date(); const diff = dueDate - now; if (diff <= 0) { timer.innerHTML = `<span style="color: var(--danger-color);" class="font-bold">Vencido</span>`; return; } const d = Math.floor(diff / (1000 * 60 * 60 * 24)); const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)); const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)); const s = Math.floor((diff % (1000 * 60)) / 1000); timer.textContent = `${d > 0 ? d + 'd ' : ''}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; }); }
         function startCountdownTimers() { if (!countdownInterval) { updateCountdownTimers(); countdownInterval = setInterval(updateCountdownTimers, 1000); } }
-        function createProgressCircle(percentage, size = 40) { const sW = size / 10; const r = (size / 2) - (sW / 2); const c = 2 * Math.PI * r; const o = c - (percentage / 100) * c; const fg = "var(--text-primary)"; const bg = "var(--text-secondary)"; const textSize = size / 4.5; return `<svg style="width:${size}px; height:${size}px;" viewBox="0 0 ${size} ${size}"><circle stroke-width="${sW}" stroke="${bg}" fill="transparent" r="${r}" cx="${size/2}" cy="${size/2}"/><circle stroke-width="${sW}" stroke-dasharray="${c}" stroke-dashoffset="${o}" stroke-linecap="round" stroke="${fg}" fill="transparent" r="${r}" cx="${size/2}" cy="${size/2}" style="transition: stroke-dashoffset 0.5s ease; transform: rotate(-90deg); transform-origin: center;"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" class="font-bold" style="fill: ${fg}; font-size: ${textSize}px;">${Math.round(percentage)}%</text></svg>`; }
-        function createTaskCard(task) { let progress = 0; let statusText = ''; if (task.subtasks.length > 0) { const completedSubtasks = task.subtasks.filter(st => st.completed).length; progress = (completedSubtasks / task.subtasks.length) * 100; statusText = `${completedSubtasks}/${task.subtasks.length}`; } else { progress = task.completed ? 100 : 0; statusText = task.completed ? '¡Hecho!' : 'Simple'; } const card = document.createElement('div'); card.className = 'task-card neo-brutalist p-4 flex justify-between items-center cursor-pointer'; card.style.backgroundColor = task.color; card.dataset.taskId = task.id; let timeInfoHTML = ''; if(task.dueDate && !task.completed) { const dueDateFormatted = new Date(task.dueDate).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); timeInfoHTML = `<p class="text-sm text-secondary">Entrega: ${dueDateFormatted}</p><p class="text-sm font-semibold countdown-timer" data-due-date="${task.dueDate}"></p>`; } else if (task.dueDate) { const dueDateFormatted = new Date(task.dueDate).toLocaleString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }); timeInfoHTML = `<p class="text-sm text-secondary">Completado el ${dueDateFormatted}</p>`; } else { timeInfoHTML = `<p class="text-sm text-secondary">Sin fecha de entrega</p>`; } card.innerHTML = `<div class="flex-grow mr-4 min-w-0"><h3 class="font-bold text-lg break-words ${task.completed ? 'line-through text-secondary' : ''}">${task.title}</h3>${timeInfoHTML}</div><div class="flex-shrink-0 flex flex-col items-center justify-center">${createProgressCircle(progress, 60)}<span class="text-xs font-semibold mt-1">${statusText}</span></div>`; card.addEventListener('click', () => { state.selectedTaskId = task.id; renderTaskDetails(); navigateTo('details'); }); return card; }
+
+        // --- LÓGICA DE RENDERIZADO ---
+        function createProgressCircle(percentage, size = 40) { const sW = size / 10; const r = (size / 2) - (sW / 2); const c = 2 * Math.PI * r; const o = c - (percentage / 100) * c; const fg = "var(--text-primary)"; const bg = "rgba(255,255,255,0.3)"; const textSize = size / 4.5; return `<svg style="width:${size}px; height:${size}px;" viewBox="0 0 ${size} ${size}"><circle stroke-width="${sW}" stroke="${bg}" fill="transparent" r="${r}" cx="${size/2}" cy="${size/2}"/><circle stroke-width="${sW}" stroke-dasharray="${c}" stroke-dashoffset="${o}" stroke-linecap="round" stroke="${fg}" fill="transparent" r="${r}" cx="${size/2}" cy="${size/2}" style="transition: stroke-dashoffset 0.5s ease; transform: rotate(-90deg); transform-origin: center;"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" class="font-bold" style="fill: ${fg}; font-size: ${textSize}px;">${Math.round(percentage)}%</text></svg>`; }
+        
+        function createTaskCard(task) { let progress = 0; let statusText = ''; if (task.subtasks.length > 0) { const completedSubtasks = task.subtasks.filter(st => st.completed).length; progress = (completedSubtasks / task.subtasks.length) * 100; statusText = `${completedSubtasks}/${task.subtasks.length}`; } else { progress = task.completed ? 100 : 0; statusText = task.completed ? '¡Hecho!' : 'Simple'; } const card = document.createElement('div'); card.className = 'task-card liquidGlass-wrapper'; card.dataset.taskId = task.id; let timeInfoHTML = ''; if(task.dueDate && !task.completed) { const dueDateFormatted = new Date(task.dueDate).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); timeInfoHTML = `<p class="text-sm text-secondary">Entrega: ${dueDateFormatted}</p><p class="text-sm font-semibold countdown-timer" data-due-date="${task.dueDate}"></p>`; } else if (task.dueDate) { const dueDateFormatted = new Date(task.dueDate).toLocaleString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }); timeInfoHTML = `<p class="text-sm text-secondary">Completado el ${dueDateFormatted}</p>`; } else { timeInfoHTML = `<p class="text-sm text-secondary">Sin fecha de entrega</p>`; } card.innerHTML = `<div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text flex justify-between items-center"><div class="flex-grow mr-4 min-w-0"><h3 class="font-bold text-lg break-words ${task.completed ? 'line-through text-secondary' : ''}">${task.title}</h3>${timeInfoHTML}</div><div class="flex-shrink-0 flex flex-col items-center justify-center">${createProgressCircle(progress, 60)}<span class="text-xs font-semibold mt-1">${statusText}</span></div></div>`; card.addEventListener('click', () => { state.selectedTaskId = task.id; renderTaskDetails(); navigateTo('details'); }); return card; }
+
         function renderDashboard() {
             containers.greetingText.textContent = `Hola, ${state.userName}!`;
             const pendingTaskCount = state.tasks.filter(t => !t.completed).length;
             containers.dashboardSummary.textContent = pendingTaskCount > 0 ? `Tienes ${pendingTaskCount} tarea${pendingTaskCount > 1 ? 's' : ''} pendiente${pendingTaskCount > 1 ? 's' : ''}.` : '¡No tienes tareas pendientes!';
             containers.motivationalQuote.textContent = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)];
+            const activeTasks = state.tasks.filter(t => !t.completed).sort((a, b) => { if (!a.dueDate) return 1; if (!b.dueDate) return -1; return new Date(a.dueDate) - new Date(b.dueDate); });
             containers.pendingTasks.innerHTML = '';
-            const activeTasks = state.tasks.filter(t => !t.completed);
-            const sortedTasks = activeTasks.sort((a, b) => { if (!a.dueDate) return 1; if (!b.dueDate) return -1; return new Date(a.dueDate) - new Date(b.dueDate); });
-            if (sortedTasks.length > 0) { sortedTasks.forEach(task => containers.pendingTasks.appendChild(createTaskCard(task))); } else { containers.pendingTasks.innerHTML = getEmptyStateHTML("Todo en orden", "No hay tareas pendientes. ¡Añade una nueva!"); }
+            if (activeTasks.length > 0) { activeTasks.forEach(task => containers.pendingTasks.appendChild(createTaskCard(task))); } else { containers.pendingTasks.innerHTML = getEmptyStateHTML("Todo en orden", "No hay tareas pendientes. ¡Añade una nueva!"); }
             renderUpcomingClasses();
             const completedTasks = state.tasks.filter(t => t.completed);
             if (completedTasks.length > 0) {
@@ -339,23 +669,13 @@
             } else { containers.completedTasksSection.classList.add('hidden'); }
             startCountdownTimers();
         }
+
         function getUpcomingClasses() {
-            const now = new Date();
-            const nowMinutes = now.getHours() * 60 + now.getMinutes();
-            const currentDay = now.getDay();
-            const tomorrowDay = (now.getDay() + 1) % 7;
-            const upcoming = state.schedule.filter(s => {
-                const [endH, endM] = s.endTime.split(':').map(Number);
-                const endMinutes = endH * 60 + endM;
-                return (s.day === currentDay && endMinutes > nowMinutes) || s.day === tomorrowDay;
-            });
-            return upcoming.sort((a, b) => {
-                const aDay = a.day === currentDay ? 0 : 1;
-                const bDay = b.day === currentDay ? 0 : 1;
-                if (aDay !== bDay) return aDay - bDay;
-                return a.startTime.localeCompare(b.startTime);
-            }).slice(0, 3);
+            const now = new Date(); const nowMinutes = now.getHours() * 60 + now.getMinutes(); const currentDay = now.getDay(); const tomorrowDay = (now.getDay() + 1) % 7;
+            const upcoming = state.schedule.filter(s => { const [endH, endM] = s.endTime.split(':').map(Number); const endMinutes = endH * 60 + endM; return (s.day === currentDay && endMinutes > nowMinutes) || s.day === tomorrowDay; });
+            return upcoming.sort((a, b) => { const aDay = a.day === currentDay ? 0 : 1; const bDay = b.day === currentDay ? 0 : 1; if (aDay !== bDay) return aDay - bDay; return a.startTime.localeCompare(b.startTime); }).slice(0, 3);
         }
+
         function renderUpcomingClasses() {
             containers.upcomingClasses.innerHTML = '';
             const upcoming = getUpcomingClasses();
@@ -364,43 +684,46 @@
                     const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
                     const dayName = s.day === new Date().getDay() ? 'Hoy' : days[s.day];
                     const card = document.createElement('div');
-                    card.className = 'class-card neo-brutalist p-4 cursor-pointer';
-                    card.style.backgroundColor = 'var(--card-color-2)';
-                    card.innerHTML = `<h3 class="font-bold text-lg break-words">${s.name}</h3><p class="text-md text-secondary">${dayName} a las ${s.startTime}</p>`;
+                    card.className = 'class-card liquidGlass-wrapper';
+                    card.innerHTML = `<div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text"><h3 class="font-bold text-lg break-words">${s.name}</h3><p class="text-md text-secondary">${dayName} a las ${s.startTime}</p></div>`;
                     card.addEventListener('click', () => navigateTo('schedule'));
                     containers.upcomingClasses.appendChild(card);
                 });
-            } else {
-                containers.upcomingClasses.innerHTML = getEmptyStateHTML("Tiempo libre", "No tienes clases programadas próximamente.");
-            }
+            } else { containers.upcomingClasses.innerHTML = getEmptyStateHTML("Tiempo libre", "No tienes clases programadas próximamente."); }
         }
-        function renderTaskDetails() { const task = state.tasks.find(t => t.id === state.selectedTaskId); if (!task) return; let progress = 0; if (task.subtasks.length > 0) { const completed = task.subtasks.filter(st => st.completed).length; progress = (completed / task.subtasks.length) * 100; } else { progress = task.completed ? 100 : 0; } let detailsHTML = `<div class="flex flex-col items-center w-full">`; detailsHTML += `<div class="mb-6">${createProgressCircle(progress, 120)}</div>`; detailsHTML += `<h2 class="font-heading text-3xl md:text-5xl uppercase mb-2 text-center break-words ${task.completed ? 'line-through text-secondary' : ''}">${task.title}</h2>`; detailsHTML += `<div class="text-sm text-secondary mb-6 text-center"><span>Creado: ${new Date(task.createdAt).toLocaleDateString()}</span> | <span>Entrega: ${task.dueDate ? new Date(task.dueDate).toLocaleString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit'}) : 'Sin fecha'}</span></div>`; detailsHTML += `<p class="mb-8 text-center w-full max-w-2xl">${task.description || '<em>Sin descripción.</em>'}</p>`; detailsHTML += `<div class="w-full border-t-2 pt-6" style="border-color: var(--border-color);">`; if (task.subtasks.length > 0) { const comp = task.subtasks.filter(st => st.completed).length; const total = task.subtasks.length; const subsHTML = task.subtasks.map(st => `<div class="flex items-center gap-4 p-3 border-b-2" style="border-color: var(--border-color);"><input type="checkbox" id="subtask-${st.id}" data-subtask-id="${st.id}" class="custom-checkbox" ${st.completed ? 'checked' : ''}><label for="subtask-${st.id}" class="flex-1 ${st.completed ? 'line-through text-secondary' : ''}">${st.text}</label></div>`).join(''); detailsHTML += `<h3 class="font-heading text-xl uppercase mb-4">Progreso (${comp}/${total})</h3><div id="subtasks-details-list">${subsHTML}</div><button id="add-subtask-details-btn" class="mt-4 neo-brutalist btn-secondary text-sm font-bold px-3 py-1.5">+ Añadir subtarea</button>`; } else { detailsHTML += `<div class="flex justify-center"><label for="complete-task-checkbox" class="flex items-center gap-4 cursor-pointer"><input type="checkbox" id="complete-task-checkbox" class="custom-checkbox w-8 h-8" ${task.completed ? 'checked' : ''}><span class="text-xl font-bold">Marcar como completada</span></label></div>`; } detailsHTML += `</div></div>`; containers.taskDetails.innerHTML = detailsHTML; if (task.subtasks.length > 0) { document.querySelectorAll('#subtasks-details-list input[type="checkbox"]').forEach(cb => { cb.addEventListener('change', e => { const subtask = task.subtasks.find(st => st.id === e.target.dataset.subtaskId); if(subtask) { subtask.completed = e.target.checked; task.completed = task.subtasks.every(st => st.completed); saveData(); renderTaskDetails(); } }); }); document.getElementById('add-subtask-details-btn').addEventListener('click', () => { openSubtaskModal(false, task.id); }); } else { document.getElementById('complete-task-checkbox').addEventListener('change', e => { task.completed = e.target.checked; saveData(); renderTaskDetails(); }); } }
-        function renderFormSubtasks() { containers.subtasksFormList.innerHTML = state.tempSubtasks.map((st, i) => `<div class="flex items-center justify-between p-2 neo-brutalist-flat" style="background-color: var(--bg-env);"><span class="text-secondary">${st.text}</span><button type="button" class="font-bold text-red-500 px-2" data-index="${i}" aria-label="Eliminar subtarea">×</button></div>`).join(''); containers.subtasksFormList.querySelectorAll('button').forEach(btn => btn.addEventListener('click', e => { state.tempSubtasks.splice(e.target.dataset.index, 1); renderFormSubtasks(); })); }
-        function getEmptyStateHTML(title, message) { return `<div class="col-span-full text-center p-8 md:p-12 neo-brutalist-flat" style="background-color: var(--bg-main);"><h3 class="font-heading text-xl uppercase">${title}</h3><p class="mt-1 text-sm text-secondary">${message}</p></div>`; }
-        function renderCalendar() { containers.calendarGrid.innerHTML = ''; const d = state.calendarDate; const y = d.getFullYear(); const m = d.getMonth(); const t = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase(); containers.calendarTitleDesktop.textContent = t; const fD = new Date(y, m, 1).getDay(); const dM = new Date(y, m + 1, 0).getDate(); ['D', 'L', 'M', 'X', 'J', 'V', 'S'].forEach(day => containers.calendarGrid.innerHTML += `<div class="p-2 border-b-2" style="border-color: var(--border-color);">${day}</div>`); const tD = {}; state.tasks.forEach(task => { if(task.dueDate){ const tDate = task.dueDate.split('T')[0]; if(!tD[tDate]) tD[tDate] = []; tD[tDate].push(task); }}); for (let i = 0; i < (fD === 0 ? 6 : fD - 1); i++) containers.calendarGrid.innerHTML += `<div></div>`; for (let day = 1; day <= dM; day++) { const el = document.createElement('div'); const fDate = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; el.className = 'p-2 cursor-pointer rounded-full relative hover:bg-gray-200'; el.textContent = day; el.dataset.date = fDate; if (tD[fDate]) { el.innerHTML += `<span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full" style="background-color: var(--accent-primary);"></span>`; el.classList.add('font-extrabold'); } el.addEventListener('click', () => renderTasksForDay(fDate, tD[fDate] || [])); containers.calendarGrid.appendChild(el); } }
-        function renderTasksForDay(dateStr, tasks) { const date = new Date(dateStr + 'T00:00:00'); containers.calendarTasks.innerHTML = `<h3 class="font-heading text-xl uppercase mb-2">Tareas para el ${date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>`; if(tasks.length > 0) { tasks.forEach(task => { const el = document.createElement('div'); el.className = 'p-3 neo-brutalist-flat cursor-pointer'; el.style.backgroundColor = task.color; el.textContent = task.title; el.addEventListener('click', () => { state.selectedTaskId = task.id; renderTaskDetails(); navigateTo('details'); }); containers.calendarTasks.appendChild(el); }); } else { containers.calendarTasks.innerHTML += `<p class="text-secondary">No hay tareas programadas.</p>`; } }
+        
+        function renderTaskDetails() { const task = state.tasks.find(t => t.id === state.selectedTaskId); if (!task) return; let progress = 0; if (task.subtasks.length > 0) { const completed = task.subtasks.filter(st => st.completed).length; progress = (completed / task.subtasks.length) * 100; } else { progress = task.completed ? 100 : 0; } let detailsHTML = `<div class="flex flex-col items-center w-full">`; detailsHTML += `<div class="mb-6">${createProgressCircle(progress, 120)}</div>`; detailsHTML += `<h2 class="font-heading text-3xl md:text-5xl uppercase mb-2 text-center break-words ${task.completed ? 'line-through text-secondary' : ''}">${task.title}</h2>`; detailsHTML += `<div class="text-sm text-secondary mb-6 text-center"><span>Creado: ${new Date(task.createdAt).toLocaleDateString()}</span> | <span>Entrega: ${task.dueDate ? new Date(task.dueDate).toLocaleString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute:'2-digit'}) : 'Sin fecha'}</span></div>`; detailsHTML += `<p class="mb-8 text-center w-full max-w-2xl">${task.description || '<em>Sin descripción.</em>'}</p>`; detailsHTML += `<div class="w-full border-t-2 border-white/20 pt-6">`; if (task.subtasks.length > 0) { const comp = task.subtasks.filter(st => st.completed).length; const total = task.subtasks.length; const subsHTML = task.subtasks.map(st => `<div class="flex items-center gap-4 p-3 border-b-2 border-white/10"><input type="checkbox" id="subtask-${st.id}" data-subtask-id="${st.id}" class="custom-checkbox" ${st.completed ? 'checked' : ''}><label for="subtask-${st.id}" class="flex-1 ${st.completed ? 'line-through text-secondary' : ''}">${st.text}</label></div>`).join(''); detailsHTML += `<h3 class="font-heading text-xl uppercase mb-4">Progreso (${comp}/${total})</h3><div id="subtasks-details-list">${subsHTML}</div><button id="add-subtask-details-btn" class="mt-4 liquidGlass-wrapper pwa-button"><div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text text-sm">+ Añadir subtarea</div></button>`; } else { detailsHTML += `<div class="flex justify-center"><label for="complete-task-checkbox" class="flex items-center gap-4 cursor-pointer"><input type="checkbox" id="complete-task-checkbox" class="custom-checkbox w-8 h-8" ${task.completed ? 'checked' : ''}><span class="text-xl font-bold">Marcar como completada</span></label></div>`; } detailsHTML += `</div></div>`; containers.taskDetails.innerHTML = detailsHTML; if (task.subtasks.length > 0) { document.querySelectorAll('#subtasks-details-list input[type="checkbox"]').forEach(cb => { cb.addEventListener('change', e => { const subtask = task.subtasks.find(st => st.id === e.target.dataset.subtaskId); if(subtask) { subtask.completed = e.target.checked; task.completed = task.subtasks.every(st => st.completed); saveData(); renderTaskDetails(); } }); }); document.getElementById('add-subtask-details-btn').addEventListener('click', () => { openSubtaskModal(false, task.id); }); } else { document.getElementById('complete-task-checkbox').addEventListener('change', e => { task.completed = e.target.checked; saveData(); renderTaskDetails(); }); } }
+        
+        function renderFormSubtasks() { containers.subtasksFormList.innerHTML = state.tempSubtasks.map((st, i) => `<div class="flex items-center justify-between p-2 rounded-lg" style="background: rgba(0,0,0,0.2);"><span class="text-secondary">${st.text}</span><button type="button" class="font-bold text-red-500 px-2" data-index="${i}" aria-label="Eliminar subtarea">×</button></div>`).join(''); containers.subtasksFormList.querySelectorAll('button').forEach(btn => btn.addEventListener('click', e => { state.tempSubtasks.splice(e.target.dataset.index, 1); renderFormSubtasks(); })); }
+        function getEmptyStateHTML(title, message) { return `<div class="col-span-full text-center liquidGlass-wrapper"><div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text"><h3 class="font-heading text-xl uppercase">${title}</h3><p class="mt-1 text-sm text-secondary">${message}</p></div></div>`; }
+        function renderCalendar() { containers.calendarGrid.innerHTML = ''; const d = state.calendarDate; const y = d.getFullYear(); const m = d.getMonth(); const t = d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase(); containers.calendarTitleDesktop.textContent = t; const fD = new Date(y, m, 1).getDay(); const dM = new Date(y, m + 1, 0).getDate(); ['D', 'L', 'M', 'X', 'J', 'V', 'S'].forEach(day => containers.calendarGrid.innerHTML += `<div class="p-2 border-b-2 border-white/20">${day}</div>`); const tD = {}; state.tasks.forEach(task => { if(task.dueDate){ const tDate = task.dueDate.split('T')[0]; if(!tD[tDate]) tD[tDate] = []; tD[tDate].push(task); }}); for (let i = 0; i < (fD === 0 ? 6 : fD - 1); i++) containers.calendarGrid.innerHTML += `<div></div>`; for (let day = 1; day <= dM; day++) { const el = document.createElement('div'); const fDate = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; el.className = 'p-2 cursor-pointer rounded-full relative hover:bg-white/20 transition-colors'; el.textContent = day; el.dataset.date = fDate; if (tD[fDate]) { el.innerHTML += `<span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full" style="background-color: var(--accent-primary);"></span>`; el.classList.add('font-extrabold'); } el.addEventListener('click', () => renderTasksForDay(fDate, tD[fDate] || [])); containers.calendarGrid.appendChild(el); } }
+        function renderTasksForDay(dateStr, tasks) { const date = new Date(dateStr + 'T00:00:00'); containers.calendarTasks.innerHTML = `<h3 class="font-heading text-xl uppercase mb-2">Tareas para el ${date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</h3>`; if(tasks.length > 0) { tasks.forEach(task => { const el = document.createElement('div'); el.className = 'liquidGlass-wrapper cursor-pointer text-left'; el.innerHTML = `<div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div><div class="liquidGlass-text !p-3">${task.title}</div>`; el.addEventListener('click', () => { state.selectedTaskId = task.id; renderTaskDetails(); navigateTo('details'); }); containers.calendarTasks.appendChild(el); }); } else { containers.calendarTasks.innerHTML += `<p class="text-secondary">No hay tareas programadas.</p>`; } }
+        
         function renderSchedule() {
             containers.scheduleList.innerHTML = '';
-            if (state.schedule.length === 0) {
-                containers.scheduleList.innerHTML = getEmptyStateHTML("Tu horario está vacío", "Añade tu primera materia para empezar a organizarte.");
-                return;
-            }
+            if (state.schedule.length === 0) { containers.scheduleList.innerHTML = getEmptyStateHTML("Tu horario está vacío", "Añade tu primera materia para empezar a organizarte."); return; }
             const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
             const scheduleByDay = days.map(() => []).map((_, dayIndex) => state.schedule.filter(s => s.day === dayIndex).sort((a,b) => a.startTime.localeCompare(b.startTime)));
-            const upcomingClasses = getUpcomingClasses();
-            const nextClassId = upcomingClasses.length > 0 ? upcomingClasses[0].id : null;
+            const nextClassId = getUpcomingClasses().length > 0 ? getUpcomingClasses()[0].id : null;
             days.forEach((dayName, dayIndex) => {
                 if (scheduleByDay[dayIndex].length > 0) {
                     const dayGroup = document.createElement('div');
-                    dayGroup.className = 'schedule-day-group space-y-3';
+                    dayGroup.className = 'schedule-day-group space-y-3 relative';
                     dayGroup.dataset.dayIndex = dayIndex;
-                    let dayHTML = `<h3 class="font-heading text-2xl uppercase pb-2 border-b-2" style="border-color: var(--border-color);">${dayName}</h3>`;
+                    let dayHTML = `<h3 class="font-heading text-2xl uppercase pb-2 border-b-2 border-white/20">${dayName}</h3>`;
                     scheduleByDay[dayIndex].forEach(s => {
-                        dayHTML += `<div id="subject-${s.id}" class="class-card neo-brutalist-flat p-3 flex justify-between items-center cursor-pointer ${s.id === nextClassId ? 'next-class' : ''}" style="background-color: var(--card-color-1);"><span class="font-bold">${s.name}</span><span class="text-secondary font-semibold">${s.startTime} - ${s.endTime}</span></div>`;
+                        dayHTML += `
+                            <div id="subject-${s.id}" class="class-card liquidGlass-wrapper cursor-pointer ${s.id === nextClassId ? 'next-class' : ''}">
+                                <div class="liquidGlass-effect"></div><div class="liquidGlass-tint"></div><div class="liquidGlass-shine"></div>
+                                <div class="liquidGlass-text !p-3 flex justify-between items-center">
+                                    <span class="font-bold">${s.name}</span>
+                                    <span class="text-secondary font-semibold">${s.startTime} - ${s.endTime}</span>
+                                </div>
+                            </div>`;
                     });
                     dayGroup.innerHTML = dayHTML;
                     containers.scheduleList.appendChild(dayGroup);
-                    dayGroup.querySelectorAll('.neo-brutalist-flat').forEach((el, i) => {
+                    dayGroup.querySelectorAll('.class-card').forEach((el, i) => {
                         const subjectId = scheduleByDay[dayIndex][i].id;
                         el.addEventListener('click', () => openEditSubjectForm(subjectId));
                     });
@@ -408,124 +731,118 @@
             });
             updateScheduleTimeIndicator();
         }
+
         function updateScheduleTimeIndicator() {
-            let indicator = document.querySelector('.schedule-time-indicator');
-            if (indicator) indicator.remove();
-            const now = new Date();
-            const currentDayIndex = now.getDay();
-            const dayGroupEl = containers.scheduleList.querySelector(`.schedule-day-group[data-day-index="${currentDayIndex}"]`);
-            if (!dayGroupEl) return;
-            const nowMinutes = now.getHours() * 60 + now.getMinutes();
-            const classesEl = dayGroupEl.querySelectorAll('.neo-brutalist-flat');
+            let indicator = document.querySelector('.schedule-time-indicator'); if (indicator) indicator.remove();
+            const now = new Date(); const currentDayIndex = now.getDay(); const dayGroupEl = containers.scheduleList.querySelector(`.schedule-day-group[data-day-index="${currentDayIndex}"]`); if (!dayGroupEl) return;
+            const nowMinutes = now.getHours() * 60 + now.getMinutes(); const classesEl = dayGroupEl.querySelectorAll('.class-card');
             for(let i=0; i < classesEl.length; i++) {
-                const classEl = classesEl[i];
-                const subjectId = classEl.id.replace('subject-', '');
-                const subject = state.schedule.find(s => s.id === subjectId);
-                if (!subject) continue;
-                const [startH, startM] = subject.startTime.split(':').map(Number);
-                const [endH, endM] = subject.endTime.split(':').map(Number);
-                const startMinutes = startH * 60 + startM;
-                const endMinutes = endH * 60 + endM;
+                const classEl = classesEl[i]; const subjectId = classEl.id.replace('subject-', ''); const subject = state.schedule.find(s => s.id === subjectId); if (!subject) continue;
+                const [startH, startM] = subject.startTime.split(':').map(Number); const [endH, endM] = subject.endTime.split(':').map(Number); const startMinutes = startH * 60 + startM; const endMinutes = endH * 60 + endM;
                 if (nowMinutes >= startMinutes && nowMinutes < endMinutes) {
-                    const duration = endMinutes - startMinutes;
-                    const progress = (nowMinutes - startMinutes) / duration;
-                    const top = classEl.offsetTop + (classEl.offsetHeight * progress);
-                    indicator = document.createElement('div');
-                    indicator.className = 'schedule-time-indicator';
-                    indicator.style.top = `${top}px`;
-                    dayGroupEl.appendChild(indicator);
-                    break;
+                    const duration = endMinutes - startMinutes; const progress = (nowMinutes - startMinutes) / duration; const top = classEl.offsetTop + (classEl.offsetHeight * progress);
+                    indicator = document.createElement('div'); indicator.className = 'schedule-time-indicator'; indicator.style.top = `${top}px`; dayGroupEl.appendChild(indicator); break;
                 }
             }
         }
+
         function startScheduleUpdater() { renderSchedule(); scheduleInterval = setInterval(renderSchedule, 60000); }
+
+        function renderSettings() {
+            renderGrades();
+            inputs.classNotification.value = state.classNotification || 'none';
+            inputs.wallpaperUrl.value = (state.wallpaper && !state.wallpaper.startsWith('data:')) ? state.wallpaper : '';
+        }
+
         function renderGrades() {
             containers.grades.innerHTML = '';
-            if (state.schedule.length === 0) {
-                containers.grades.innerHTML = `<p class="text-sm text-secondary">No hay materias registradas en el horario. Añade materias para poder registrar sus calificaciones.</p>`;
-                return;
-            }
-            const subjects = [...new Map(state.schedule.map(item => [item.name, item])).values()];
-            subjects.sort((a,b) => a.name.localeCompare(b.name));
+            if (state.schedule.length === 0) { containers.grades.innerHTML = `<p class="text-sm text-secondary">No hay materias registradas. Añade materias en el Horario para registrar sus calificaciones.</p>`; return; }
+            const subjects = [...new Map(state.schedule.map(item => [item.name, item])).values()].sort((a,b) => a.name.localeCompare(b.name));
             subjects.forEach(subject => {
                 const gradeEl = document.createElement('div');
-                gradeEl.className = 'flex items-center justify-between p-3 neo-brutalist-flat'
-                gradeEl.style.backgroundColor = 'var(--bg-env)';
+                gradeEl.className = 'flex items-center justify-between p-3 rounded-lg';
+                gradeEl.style.backgroundColor = 'rgba(0,0,0,0.2)';
                 gradeEl.innerHTML = `<label for="grade-${subject.id}" class="font-bold">${subject.name}</label><input type="number" id="grade-${subject.id}" data-subject-id="${subject.id}" value="${state.grades[subject.id] || ''}" min="0" max="10" step="0.1" class="input-field w-24 text-center" placeholder="N/A">`;
                 containers.grades.appendChild(gradeEl);
             });
             containers.grades.querySelectorAll('input').forEach(input => {
                 input.addEventListener('change', (e) => {
-                    const subjectId = e.target.dataset.subjectId;
-                    const value = e.target.value;
-                    if (value === '') { delete state.grades[subjectId]; }
-                    else { state.grades[subjectId] = parseFloat(value); }
+                    const subjectId = e.target.dataset.subjectId; const value = e.target.value;
+                    if (value === '') { delete state.grades[subjectId]; } else { state.grades[subjectId] = parseFloat(value); }
                     saveData();
                 });
             });
         }
+
         function openSubtaskModal(isFormCtx, taskId = null) { subtaskModalContext = { isFormContext: isFormCtx, taskId }; modal.element.classList.add('active'); modal.input.value = ''; modal.input.focus(); }
         function closeSubtaskModal() { modal.element.classList.remove('active'); }
         function handleAddSubtask() { const text = modal.input.value.trim(); if (!text) return; if (subtaskModalContext.isFormContext) { state.tempSubtasks.push({ text, completed: false }); renderFormSubtasks(); } else { const task = state.tasks.find(t => t.id === subtaskModalContext.taskId); if (task) { task.subtasks.push({ id: `sub-${Date.now()}`, text, completed: false }); saveData(); renderTaskDetails(); } } closeSubtaskModal(); }
-        function openNewTaskForm() { state.selectedTaskId = null; formElements.form.reset(); formElements.formTitle.textContent = 'Nuevo Proyecto'; buttons.saveTask.textContent = 'Crear Proyecto'; state.tempSubtasks = []; renderFormSubtasks(); navigateTo('form'); }
-        function openEditTaskForm(taskId) { const task = state.tasks.find(t => t.id === taskId); if (!task) return; state.selectedTaskId = taskId; formElements.form.reset(); formElements.formTitle.textContent = 'Editar Proyecto'; buttons.saveTask.textContent = 'Guardar Cambios'; formElements.title.value = task.title; formElements.description.value = task.description; if (task.dueDate) { const d = new Date(task.dueDate); const year = d.getFullYear(); const month = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); const hours = String(d.getHours()).padStart(2, '0'); const minutes = String(d.getMinutes()).padStart(2, '0'); formElements.dueDate.value = `${year}-${month}-${day}T${hours}:${minutes}`; } else { formElements.dueDate.value = ''; } if (task.color === 'var(--card-color-2)') { formElements.color2.checked = true; } else { formElements.color1.checked = true; } state.tempSubtasks = JSON.parse(JSON.stringify(task.subtasks)); renderFormSubtasks(); navigateTo('form'); }
-        function openNewSubjectForm() { state.selectedSubjectId = null; subjectFormElements.form.reset(); subjectFormElements.formTitle.textContent = 'Nueva Materia'; buttons.saveSubject.textContent = 'Añadir Materia'; navigateTo('subjectForm'); }
-        function openEditSubjectForm(subjectId) { const subject = state.schedule.find(s => s.id === subjectId); if (!subject) return; state.selectedSubjectId = subjectId; subjectFormElements.form.reset(); subjectFormElements.formTitle.textContent = 'Editar Materia'; buttons.saveSubject.textContent = 'Guardar Cambios'; subjectFormElements.name.value = subject.name; subjectFormElements.day.value = subject.day; subjectFormElements.startTime.value = subject.startTime; subjectFormElements.endTime.value = subject.endTime; navigateTo('subjectForm'); }
-        formElements.setupForm.addEventListener('submit', (e) => { e.preventDefault(); const name = inputs.username.value.trim(); if(name){ state.userName = name; saveData(); renderDashboard(); navigateTo('dashboard'); } });
-        buttons.mobileAddTask.addEventListener('click', openNewTaskForm);
-        buttons.desktopAddTask.addEventListener('click', openNewTaskForm);
+        
+        function openNewTaskForm() { state.selectedTaskId = null; formElements.form.reset(); formElements.formTitle.textContent = 'Nuevo Proyecto'; document.getElementById('save-task-btn-text').textContent = 'Crear Proyecto'; state.tempSubtasks = []; renderFormSubtasks(); navigateTo('form'); }
+        function openEditTaskForm(taskId) { const task = state.tasks.find(t => t.id === taskId); if (!task) return; state.selectedTaskId = taskId; formElements.form.reset(); formElements.formTitle.textContent = 'Editar Proyecto'; document.getElementById('save-task-btn-text').textContent = 'Guardar Cambios'; formElements.title.value = task.title; formElements.description.value = task.description; if (task.dueDate) { const d = new Date(task.dueDate); const year = d.getFullYear(); const month = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0'); const hours = String(d.getHours()).padStart(2, '0'); const minutes = String(d.getMinutes()).padStart(2, '0'); formElements.dueDate.value = `${year}-${month}-${day}T${hours}:${minutes}`; } else { formElements.dueDate.value = ''; } formElements.notification.value = task.notification || 'none'; state.tempSubtasks = JSON.parse(JSON.stringify(task.subtasks)); renderFormSubtasks(); navigateTo('form'); }
+        
+        function openNewSubjectForm() { state.selectedSubjectId = null; subjectFormElements.form.reset(); subjectFormElements.formTitle.textContent = 'Nueva Materia'; document.getElementById('save-subject-btn-text').textContent = 'Añadir Materia'; navigateTo('subjectForm'); }
+        function openEditSubjectForm(subjectId) { const subject = state.schedule.find(s => s.id === subjectId); if (!subject) return; state.selectedSubjectId = subjectId; subjectFormElements.form.reset(); subjectFormElements.formTitle.textContent = 'Editar Materia'; document.getElementById('save-subject-btn-text').textContent = 'Guardar Cambios'; subjectFormElements.name.value = subject.name; subjectFormElements.day.value = subject.day; subjectFormElements.startTime.value = subject.startTime; subjectFormElements.endTime.value = subject.endTime; navigateTo('subjectForm'); }
+
+        // --- EVENT HANDLERS ---
+        formElements.setupForm.addEventListener('submit', (e) => { e.preventDefault(); const name = inputs.username.value.trim(); if(name){ state.userName = name; saveData(); renderDashboard(); navigateTo('dashboard'); notificationManager.start(); } });
+        
+        [buttons.mobileAddTask, buttons.desktopAddTask].forEach(btn => btn.addEventListener('click', openNewTaskForm));
         buttons.addSubject.addEventListener('click', openNewSubjectForm);
         buttons.backToDashboard.addEventListener('click', () => { renderDashboard(); navigateTo('dashboard'); });
         buttons.editTask.addEventListener('click', () => { if (state.selectedTaskId) openEditTaskForm(state.selectedTaskId); });
         buttons.cancelForm.addEventListener('click', () => { if (state.selectedTaskId) { renderTaskDetails(); navigateTo('details'); } else { renderDashboard(); navigateTo('dashboard'); } });
         buttons.cancelSubjectForm.addEventListener('click', () => { renderSchedule(); navigateTo('schedule'); });
-        formElements.form.addEventListener('submit', (e) => { e.preventDefault(); const title = formElements.title.value.trim(); if (!title) return; const commonData = { title, description: formElements.description.value.trim(), dueDate: formElements.dueDate.value, color: formElements.color1.checked ? 'var(--card-color-1)' : 'var(--card-color-2)', subtasks: state.tempSubtasks.map((st, i) => ({ id: st.id || `sub-${Date.now()}-${i}`, text: st.text, completed: st.completed || false })) }; if (state.selectedTaskId) { const taskIndex = state.tasks.findIndex(t => t.id === state.selectedTaskId); if (taskIndex > -1) { const originalTask = state.tasks[taskIndex]; const updatedTask = { ...originalTask, ...commonData }; updatedTask.completed = updatedTask.subtasks.length > 0 ? updatedTask.subtasks.every(st => st.completed) : (updatedTask.subtasks.length === 0 ? false : originalTask.completed); state.tasks[taskIndex] = updatedTask; saveData(); renderTaskDetails(); navigateTo('details'); } } else { const newTask = { ...commonData, id: `task-${Date.now()}`, createdAt: new Date().toISOString(), completed: false }; newTask.subtasks.forEach(st => st.completed = false); state.tasks.push(newTask); saveData(); renderDashboard(); navigateTo('dashboard'); } });
+        
+        formElements.form.addEventListener('submit', (e) => { e.preventDefault(); const title = formElements.title.value.trim(); if (!title) return; const commonData = { title, description: formElements.description.value.trim(), dueDate: formElements.dueDate.value, notification: formElements.notification.value, notificationSent: false, subtasks: state.tempSubtasks.map((st, i) => ({ id: st.id || `sub-${Date.now()}-${i}`, text: st.text, completed: st.completed || false })) }; if (state.selectedTaskId) { const taskIndex = state.tasks.findIndex(t => t.id === state.selectedTaskId); if (taskIndex > -1) { const originalTask = state.tasks[taskIndex]; const updatedTask = { ...originalTask, ...commonData }; updatedTask.completed = updatedTask.subtasks.length > 0 ? updatedTask.subtasks.every(st => st.completed) : (updatedTask.subtasks.length === 0 ? false : originalTask.completed); state.tasks[taskIndex] = updatedTask; saveData(); renderTaskDetails(); navigateTo('details'); } } else { const newTask = { ...commonData, id: `task-${Date.now()}`, createdAt: new Date().toISOString(), completed: false }; newTask.subtasks.forEach(st => st.completed = false); state.tasks.push(newTask); saveData(); renderDashboard(); navigateTo('dashboard'); } });
         subjectFormElements.form.addEventListener('submit', (e) => { e.preventDefault(); const name = subjectFormElements.name.value.trim(); if (!name) return; const subjectData = { name, day: parseInt(subjectFormElements.day.value), startTime: subjectFormElements.startTime.value, endTime: subjectFormElements.endTime.value }; if (state.selectedSubjectId) { const index = state.schedule.findIndex(s => s.id === state.selectedSubjectId); if (index > -1) state.schedule[index] = { ...state.schedule[index], ...subjectData }; } else { state.schedule.push({ ...subjectData, id: `sub-${Date.now()}` }); } saveData(); renderSchedule(); navigateTo('schedule'); });
-        buttons.mobileDashboard.addEventListener('click', () => navigateTo('dashboard'));
-        buttons.desktopDashboard.addEventListener('click', () => navigateTo('dashboard'));
-        buttons.mobileCalendar.addEventListener('click', () => { renderCalendar(); navigateTo('calendar'); });
-        buttons.desktopCalendar.addEventListener('click', () => { renderCalendar(); navigateTo('calendar'); });
-        buttons.mobileSchedule.addEventListener('click', () => navigateTo('schedule'));
-        buttons.desktopSchedule.addEventListener('click', () => navigateTo('schedule'));
-        buttons.mobileSettings.addEventListener('click', () => navigateTo('settings'));
-        buttons.desktopSettings.addEventListener('click', () => navigateTo('settings'));
+        
+        [buttons.mobileDashboard, buttons.desktopDashboard].forEach(btn => btn.addEventListener('click', () => navigateTo('dashboard')));
+        [buttons.mobileCalendar, buttons.desktopCalendar].forEach(btn => btn.addEventListener('click', () => { renderCalendar(); navigateTo('calendar'); }));
+        [buttons.mobileSchedule, buttons.desktopSchedule].forEach(btn => btn.addEventListener('click', () => navigateTo('schedule')));
+        [buttons.mobileSettings, buttons.desktopSettings].forEach(btn => btn.addEventListener('click', () => navigateTo('settings')));
+
         buttons.importData.addEventListener('click', () => inputs.importFile.click());
         inputs.importFile.addEventListener('change', importData);
         buttons.exportData.addEventListener('click', exportData);
         buttons.resetApp.addEventListener('click', resetApp);
-        const prevMonthAction = () => { state.calendarDate.setMonth(state.calendarDate.getMonth() - 1); renderCalendar(); };
-        const nextMonthAction = () => { state.calendarDate.setMonth(state.calendarDate.getMonth() + 1); renderCalendar(); };
-        buttons.calendarPrevMonth.addEventListener('click', prevMonthAction); 
-        buttons.calendarNextMonth.addEventListener('click', nextMonthAction);
+        
+        buttons.calendarPrevMonth.addEventListener('click', () => { state.calendarDate.setMonth(state.calendarDate.getMonth() - 1); renderCalendar(); });
+        buttons.calendarNextMonth.addEventListener('click', () => { state.calendarDate.setMonth(state.calendarDate.getMonth() + 1); renderCalendar(); });
+        
         modal.addBtnForm.addEventListener('click', () => openSubtaskModal(true)); 
         modal.confirmBtn.addEventListener('click', handleAddSubtask); 
         modal.cancelBtn.addEventListener('click', closeSubtaskModal);
         modal.input.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddSubtask(); });
-        inputs.immersiveModeSwitch.addEventListener('change', () => toggleImmersiveMode());
-        document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement) { inputs.immersiveModeSwitch.checked = false; localStorage.setItem('fluir-immersive', false); }});
-        buttons.toggleCompleted.addEventListener('click', (e) => { const isHidden = containers.completedTasks.classList.toggle('hidden'); e.target.textContent = isHidden ? 'Mostrar' : 'Ocultar'; });
+        
+        buttons.toggleCompleted.addEventListener('click', (e) => { const isHidden = containers.completedTasks.classList.toggle('hidden'); e.currentTarget.querySelector('.liquidGlass-text').textContent = isHidden ? 'Mostrar' : 'Ocultar'; });
+        
+        // Handlers para Apariencia y Notificaciones
+        buttons.saveWallpaperUrl.addEventListener('click', handleWallpaperUrl);
+        inputs.wallpaperFile.addEventListener('change', handleWallpaperFile);
+        buttons.resetWallpaper.addEventListener('click', resetWallpaper);
+        inputs.classNotification.addEventListener('change', (e) => { state.classNotification = e.target.value; saveData(); });
+
+        // --- INITIALIZATION ---
         function init() {
-            setTimeout(() => { splashScreen.classList.add('is-fading'); setTimeout(() => { splashScreen.style.display = 'none'; }, 500); }, 1500);
+            setTimeout(() => { splashScreen.classList.add('is-fading'); setTimeout(() => { splashScreen.style.display = 'none'; }, 500); }, 2500);
             loadData();
-            const savedTheme = localStorage.getItem('fluir-theme') || 'default-light';
-            containers.themeSelector.innerHTML = themes.map(theme => `<div class="flex items-center gap-2"><input type="radio" id="theme-${theme.id}" name="theme" value="${theme.id}" class="custom-checkbox" ${savedTheme === theme.id ? 'checked' : ''}><label for="theme-${theme.id}" class="font-bold">${theme.name}</label></div>`).join('');
-            applyTheme(savedTheme);
-            containers.themeSelector.addEventListener('change', e => applyTheme(e.target.value));
-            const isImmersive = localStorage.getItem('fluir-immersive') === 'true';
-            if(isImmersive) toggleImmersiveMode(true);
+            applyWallpaper();
             if (state.userName) {
                 renderDashboard();
                 navigateTo('dashboard');
+                notificationManager.start();
             } else {
                 views.setup.classList.add('active');
                 state.currentView = 'setup';
                 updateNavActiveState('setup');
             }
         }
+        
         init();
     });
     </script>
-    
+
     <!-- PWA: Script para registrar el Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
@@ -540,5 +857,6 @@
             });
         }
     </script>
+    
 </body>
 </html>
