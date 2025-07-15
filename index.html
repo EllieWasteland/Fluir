@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fluir - Versión Final</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0C0A1A">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kdam+Thmor+Pro&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --text-primary: #FFFFFF;
+            --text-secondary: #E0E0E0;
+            --accent-primary: #00F0FF;
+            --danger-color: #FF4757;
+            --dark-text: #0C0A1A;
+            --glass-bg: rgba(30, 30, 50, 0.55);
+            --glass-bg-light: rgba(40, 40, 60, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            padding: 0; margin: 0; display: flex; align-items: flex-start; justify-content: center;
+            min-height: 100vh;
+            background: url("https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/flowers.jpg") center center / cover fixed;
+            font-family: 'Inter', sans-serif; color: var(--text-primary);
+            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+            padding-top: 2rem; padding-bottom: 8rem; padding-left: 1rem; padding-right: 1rem;
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        #setup-view {
+            position: fixed; inset: 0; z-index: 100; display: none;
+            align-items: center; justify-content: center;
+            background-color: var(--dark-text); padding: 1rem;
+        }
+
+        .glass-pane {
+            background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border); border-radius: 1.75rem;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .glass-pane-light { background: var(--glass-bg-light); }
+
+        .btn {
+            padding: 0.75rem 1.5rem; border-radius: 1.25rem; font-weight: 600;
+            color: var(--text-primary); background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border); transition: all 0.3s ease; cursor: pointer;
+        }
+        .btn:hover { background: rgba(255, 255, 255, 0.2); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .btn-primary { background: var(--accent-primary); color: var(--dark-text); border-color: transparent; }
+        .btn-primary:hover { filter: brightness(1.1); }
+        .btn-danger { background: var(--danger-color); color: var(--text-primary); border-color: transparent; }
+        .btn-danger:hover { filter: brightness(1.1); }
+        .btn-icon { padding: 0.75rem; border-radius: 9999px; display: flex; align-items: center; justify-content: center; }
+
+        .font-heading { font-family: 'Kdam Thmor Pro', sans-serif; }
+        .text-secondary { color: var(--text-secondary); }
+        .text-on-bg { text-shadow: 0px 1px 4px rgba(0, 0, 0, 0.6); }
+
+        #desktop-header { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); z-index: 40; width: 95%; max-width: 600px; padding: 0.5rem; }
+        #mobile-nav { position: fixed; bottom: 1rem; left: 1rem; right: 1rem; z-index: 40; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; padding: 0.5rem; gap: 0.5rem; }
+        .mobile-nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-secondary); padding: 0.5rem 0; border-radius: 1rem; transition: all 0.3s ease; }
+        .mobile-nav-btn:hover { background-color: rgba(255,255,255,0.1); }
+        .mobile-nav-btn.active { color: var(--accent-primary); }
+        #mobile-add-task-btn { grid-column: 3 / 4; background-color: var(--accent-primary); color: var(--dark-text); width: 4rem; height: 4rem; border-radius: 9999px; margin-top: -2.5rem; box-shadow: 0 0 20px rgba(0, 240, 255, 0.5); border: 4px solid #1e1e32; }
+        #mobile-add-task-btn:hover { transform: scale(1.05); }
+
+        .view { display: none; animation-duration: 0.4s; animation-fill-mode: forwards; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeOut { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-10px); } }
+        .view.is-entering { animation-name: fadeIn; }
+        .view.is-exiting { animation-name: fadeOut; }
+
+        .task-card { border-left: 5px solid transparent; transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; }
+        .task-card:hover { transform: scale(1.02); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); }
+        .task-card.priority-high { border-left-color: var(--danger-color); }
+        .task-card.priority-medium { border-left-color: #FFC300; }
+        .task-card.priority-low { border-left-color: #4CAF50; }
+        .focus-card { box-shadow: 0 0 20px 2px var(--accent-primary), 0 6px 15px rgba(0, 0, 0, 0.3); }
+        
+        .input-field { background: rgba(0, 0, 0, 0.25); color: var(--text-primary); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 0.75rem; padding: 0.75rem 1rem; width: 100%; transition: all 0.3s ease; }
+        .input-field:focus { outline: none; background: rgba(0, 0, 0, 0.35); box-shadow: 0 0 0 3px var(--accent-primary); border-color: var(--accent-primary); }
+        .tag { background-color: var(--accent-primary); color: var(--dark-text); padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: bold; }
+
+        .subtask-item.dragging { opacity: 0.5; background: rgba(255,255,255,0.2); }
+        .drag-handle { cursor: move; touch-action: none; }
+
+        .modal-overlay { position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 50; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-content { transform: scale(0.9); transition: transform 0.3s ease; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+
+        #zen-view { position: fixed; inset: 0; z-index: 60; background-color: rgba(12, 10, 26, 0.85); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.5s ease; }
+        #zen-view.active { opacity: 1; pointer-events: auto; }
+        #zen-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        #zen-border-clock { position: absolute; inset: 0; pointer-events: none; }
+        .border-segment { position: absolute; background-color: var(--accent-primary); box-shadow: 0 0 10px var(--accent-primary), 0 0 20px var(--accent-primary); transition: width 0.5s linear, height 0.5s linear; }
+        #border-top { top: 0; left: 0; height: 5px; width: 0; } #border-right { top: 0; right: 0; width: 5px; height: 0; } #border-bottom { bottom: 0; right: 0; height: 5px; width: 0; } #border-left { bottom: 0; left: 0; width: 5px; height: 0; }
+        #zen-controls { position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 70; display: flex; gap: 1rem; align-items: center; }
+        #zen-sound-popup { position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); opacity: 0; visibility: hidden; transition: all 0.3s ease; padding: 1rem; width: 250px; }
+        #zen-sound-controls:hover #zen-sound-popup { opacity: 1; visibility: visible; }
+        
+        #achievement-toast { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); z-index: 100; transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); padding: 1rem; }
+        #achievement-toast.show { bottom: 80px; }
+
+        ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 4px; }
+        
+        .desktop-nav-btn { color: var(--text-secondary); transition: color 0.3s ease, background-color 0.3s ease; }
+        .desktop-nav-btn.active { color: var(--accent-primary); background-color: rgba(0, 240, 255, 0.15); }
+
+        #calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.25rem; text-align: center; }
+        #calendar-grid > div { padding: 0.5rem; border-radius: 9999px; cursor: pointer; transition: background-color 0.3s; }
+        #calendar-grid > div.has-task { font-weight: bold; position: relative; }
+        #calendar-grid > div.has-task::after { content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; border-radius: 50%; background-color: var(--accent-primary); }
+        #calendar-grid > div:hover { background-color: rgba(255,255,255,0.1); }
+        #calendar-grid > div.selected { background-color: var(--accent-primary); color: var(--dark-text); }
+        #schedule-list-container .schedule-day-group { margin-bottom: 2.5rem; }
+    </style>
+</head>
+<body>
+
+    <section id="setup-view">
+        <div class="w-full max-w-xl text-center">
+            <h1 class="font-heading text-4xl md:text-6xl uppercase mb-4 text-white">¡Bienvenido/a a Fluir!</h1>
+            <p class="text-lg md:text-xl mb-12 max-w-2xl mx-auto text-secondary">Para empezar, dinos cómo te llamas.</p>
+            <form id="setup-form" class="w-full max-w-sm mx-auto">
+                <input type="text" id="username-input" class="input-field text-center text-2xl mb-8" placeholder="Escribe tu nombre aquí..." required>
+                <button type="submit" class="btn btn-primary w-full text-xl md:text-2xl">COMENZAR</button>
+            </form>
+        </div>
+    </section>
+
+    <div id="main-app-ui" class="w-full h-full" style="display: none;">
+        <header id="desktop-header" class="hidden md:flex glass-pane items-center justify-between">
+            <h1 class="font-heading text-2xl uppercase pl-4">Fluir</h1>
+            <div id="desktop-nav-links" class="flex items-center gap-1 font-semibold text-base">
+                <button id="desktop-dashboard-btn" class="desktop-nav-btn px-3 py-2 rounded-lg">Inicio</button>
+                <button id="desktop-schedule-btn" class="desktop-nav-btn px-3 py-2 rounded-lg">Horario</button>
+                <button id="desktop-calendar-btn" class="desktop-nav-btn px-3 py-2 rounded-lg">Calendario</button>
+                <button id="desktop-settings-btn" class="desktop-nav-btn px-3 py-2 rounded-lg">Ajustes</button>
+            </div>
+            <button id="desktop-add-task-btn" class="btn btn-primary flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span>Añadir</span>
+            </button>
+        </header>
+        
+        <main id="app-container" class="w-full max-w-7xl mx-auto">
+            <section id="dashboard-view" class="view space-y-10">
+                <div id="greeting-section" class="glass-pane glass-pane-light p-6">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h1 id="greeting-text" class="font-heading text-3xl md:text-4xl uppercase"></h1>
+                            <p id="dashboard-summary" class="text-secondary text-lg mt-1"></p>
+                        </div>
+                        <div id="streak-container" class="text-center flex-shrink-0 ml-4">
+                            <span class="text-4xl">🔥</span>
+                            <p id="streak-text" class="font-bold text-lg">0 días</p>
+                        </div>
+                    </div>
+                    <p id="motivational-quote" class="mt-4 italic text-secondary"></p>
+                    <!-- BOTÓN MODO ZEN AÑADIDO -->
+                    <div class="mt-6">
+                        <button id="dashboard-zen-btn" class="btn btn-primary w-full md:w-auto flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3.87v16.26M16 3.87v16.26M3.87 8h16.26M3.87 16h16.26M12 2v20"></path></svg>
+                            Iniciar Sesión Zen
+                        </button>
+                    </div>
+                </div>
+                <div id="focus-card-section"><h2 class="font-heading text-2xl uppercase mb-4 ml-2 text-on-bg">Enfoque Principal</h2><div id="focus-card-container"></div></div>
+                <div id="pending-tasks-section"><div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 ml-2 gap-4"><h2 class="font-heading text-2xl uppercase text-on-bg">Próximas Tareas</h2><div id="task-filters" class="flex items-center gap-2 flex-wrap"></div></div><div id="pending-tasks-container" class="space-y-4"></div></div>
+            </section>
+
+            <section id="details-view" class="view"><div class="glass-pane p-6"><header class="flex justify-between items-center mb-6 pb-4 border-b-2 border-white/20 flex-wrap gap-2"><button id="back-to-dashboard-btn" class="btn flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>Volver</button><div class="flex gap-2"><button id="start-zen-session-btn" class="btn btn-primary flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12 6v6l4 2"/></svg>Sesión Zen</button><button id="edit-task-btn" class="btn flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>Editar</button></div></header><div id="task-details-content"></div></div></section>
+            <section id="form-view" class="view"><div class="glass-pane p-6 max-w-3xl mx-auto"><header class="flex justify-between items-center mb-6"><h1 id="form-title" class="font-heading text-3xl md:text-4xl uppercase"></h1><button id="cancel-form-btn" class="btn">Cancelar</button></header><form id="task-form" class="space-y-6"><input type="hidden" id="task-id-input"><div><label for="task-title" class="font-bold block mb-2">Título *</label><input type="text" id="task-title" class="input-field" required></div><div><label for="task-description" class="font-bold block mb-2">Descripción</label><textarea id="task-description" rows="4" class="input-field"></textarea></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label for="task-due-date" class="font-bold block mb-2">Fecha</label><input type="datetime-local" id="task-due-date" class="input-field"></div><div><label for="task-priority" class="font-bold block mb-2">Prioridad</label><select id="task-priority" class="input-field"><option value="low">Baja</option><option value="medium" selected>Media</option><option value="high">Alta</option></select></div></div><div><label for="task-tags" class="font-bold block mb-2">Etiquetas</label><input type="text" id="task-tags" class="input-field" placeholder="#universidad, #personal..."></div><div><h3 class="font-bold mb-2">Subtareas</h3><div id="subtasks-form-list" class="space-y-2 mb-3"></div><button type="button" id="add-subtask-form-btn" class="btn text-sm">+ Añadir subtarea</button></div><button type="submit" id="save-task-btn" class="w-full btn btn-primary text-xl"></button></form></div></section>
+            <section id="schedule-view" class="view"><div class="glass-pane p-6 max-w-4xl mx-auto"><header class="flex justify-between items-center mb-8"><h1 class="font-heading text-3xl md:text-4xl uppercase">Horario Semanal</h1><button id="add-subject-btn" class="btn btn-primary flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Añadir Materia</button></header><div id="schedule-list-container" class="space-y-8"></div></div></section>
+            <section id="subject-form-view" class="view"><div class="glass-pane p-6 max-w-3xl mx-auto"><header class="flex justify-between items-center mb-6"><h1 id="subject-form-title" class="font-heading text-3xl md:text-4xl uppercase"></h1><button id="cancel-subject-form-btn" class="btn">Cancelar</button></header><form id="subject-form" class="space-y-6"><input type="hidden" id="subject-id-input"><div><label for="subject-name" class="font-bold block mb-2">Nombre Materia *</label><input type="text" id="subject-name" class="input-field" required></div><div><label for="subject-day" class="font-bold block mb-2">Día *</label><select id="subject-day" class="input-field" required><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="0">Domingo</option></select></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label for="subject-start-time" class="font-bold block mb-2">Hora Inicio *</label><input type="time" id="subject-start-time" class="input-field" required></div><div><label for="subject-end-time" class="font-bold block mb-2">Hora Fin *</label><input type="time" id="subject-end-time" class="input-field" required></div></div><button type="submit" id="save-subject-btn" class="w-full btn btn-primary text-xl"></button></form></div></section>
+            <section id="calendar-view" class="view"><div class="glass-pane p-6 max-w-5xl mx-auto"><header class="flex justify-between items-center mb-6"><h1 id="calendar-title" class="font-heading text-2xl md:text-3xl uppercase"></h1><div class="flex items-center gap-2"><button id="calendar-prev-month-btn" class="btn btn-icon">&lt;</button><button id="calendar-next-month-btn" class="btn btn-icon">&gt;</button></div></header><div id="calendar-grid" class="mb-4"></div><div id="calendar-tasks-list"><h3 class="font-heading text-xl uppercase mb-2">Tareas del día:</h3><div id="calendar-tasks-container" class="space-y-2"><p class="text-secondary">Selecciona un día para ver las tareas.</p></div></div></div></section>
+            <section id="settings-view" class="view"><div class="glass-pane p-6 max-w-4xl mx-auto space-y-12"><h1 class="font-heading text-3xl uppercase">Configuración</h1><div id="zen-settings-section"><h2 class="font-heading text-2xl uppercase mb-4">Modo Zen</h2><div class="space-y-4"><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div><label for="zen-pomodoro-duration" class="font-bold block mb-2">Enfoque (min)</label><input type="number" id="zen-pomodoro-duration" class="input-field" min="1"></div><div><label for="zen-short-break-duration" class="font-bold block mb-2">Descanso Corto (min)</label><input type="number" id="zen-short-break-duration" class="input-field" min="1"></div><div><label for="zen-long-break-duration" class="font-bold block mb-2">Descanso Largo (min)</label><input type="number" id="zen-long-break-duration" class="input-field" min="1"></div></div><div><label class="font-bold block mb-2 mt-4">Color de Acento</label><div id="zen-color-selector" class="flex gap-4"><button class="w-10 h-10 rounded-full transition-transform hover:scale-110" style="background-color: #00F0FF;" data-color="#00F0FF"></button><button class="w-10 h-10 rounded-full transition-transform hover:scale-110" style="background-color: #FF00FF;" data-color="#FF00FF"></button><button class="w-10 h-10 rounded-full transition-transform hover:scale-110" style="background-color: #00FF7F;" data-color="#00FF7F"></button><button class="w-10 h-10 rounded-full transition-transform hover:scale-110" style="background-color: #FFFF00;" data-color="#FFFF00"></button></div></div></div></div><div id="appearance-section"><h2 class="font-heading text-2xl uppercase mb-4">Apariencia</h2><div class="space-y-4"><div><label for="wallpaper-url-input" class="font-bold block mb-2">Fondo desde URL</label><div class="flex gap-2"><input type="text" id="wallpaper-url-input" class="input-field flex-1" placeholder="https://..."><button id="save-wallpaper-url-btn" class="btn">Guardar</button></div></div><div><label for="wallpaper-file-input" class="font-bold block mb-2">Fondo desde archivo</label><input type="file" id="wallpaper-file-input" accept="image/*" class="input-field"></div><button id="reset-wallpaper-btn" class="w-full md:w-auto btn">Restaurar fondo</button></div></div><div><h2 class="font-heading text-2xl uppercase mb-4">Copia de Seguridad</h2><div class="flex flex-col md:flex-row gap-4"><button id="export-btn" class="flex-1 btn">Exportar</button><button id="import-btn" class="flex-1 btn">Importar</button></div><input type="file" id="import-file-input" accept=".flu,.json" class="hidden"></div><div><h2 class="font-heading text-2xl uppercase mb-4" style="color: var(--danger-color);">Zona de Peligro</h2><button id="reset-app-btn" class="w-full btn btn-danger font-bold text-lg">Reiniciar Aplicación</button></div></div></section>
+        </main>
+        
+        <nav id="mobile-nav" class="md:hidden glass-pane">
+            <button id="mobile-dashboard-btn" data-view="dashboard" class="mobile-nav-btn"><svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg><span class="text-xs font-bold">Inicio</span></button>
+            <button id="mobile-schedule-btn" data-view="schedule" class="mobile-nav-btn"><svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg><span class="text-xs font-bold">Horario</span></button>
+            <button id="mobile-add-task-btn" class="mobile-nav-btn flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+            <button id="mobile-calendar-btn" data-view="calendar" class="mobile-nav-btn"><svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z"></path><path d="M6 4h2v2H6V4zM6 10h2v2H6v-2zM6 16h2v2H6v-2zM12 4h2v2h-2V4z"></path></svg><span class="text-xs font-bold">Calendario</span></button>
+            <button id="mobile-settings-btn" data-view="settings" class="mobile-nav-btn"><svg class="w-7 h-7" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12.22 2h-4.44a2 2 0 0 0-2 2v.77a2 2 0 0 1-1.11 1.79l-1.44.82a2 2 0 0 0-1.11 1.79v4.86a2 2 0 0 0 1.11 1.79l1.44.82a2 2 0 0 1 1.11 1.79v.77a2 2 0 0 0 2 2h4.44a2 2 0 0 0 2-2v-.77a2 2 0 0 1 1.11-1.79l1.44-.82a2 2 0 0 0 1.11-1.79v-4.86a2 2 0 0 0-1.11-1.79l-1.44-.82a2 2 0 0 1-1.11-1.79V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg><span class="text-xs font-bold">Ajustes</span></button>
+        </nav>
+    </div>
+
+    <section id="zen-view" class="view"><canvas id="zen-canvas"></canvas><div id="zen-border-clock"><div id="border-top" class="border-segment"></div><div id="border-right" class="border-segment"></div><div id="border-bottom" class="border-segment"></div><div id="border-left" class="border-segment"></div></div><div class="relative z-10 text-center"><h1 id="zen-timer-display" class="font-heading text-8xl md:text-9xl">25:00</h1><p id="zen-status-text" class="text-2xl text-secondary uppercase tracking-widest">ENFOQUE</p></div><div id="zen-controls"><div id="zen-sound-controls" class="relative"><button class="btn btn-icon w-16 h-16"><svg id="zen-sound-icon" xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button><div id="zen-sound-popup" class="glass-pane"><div id="zen-sound-selector" class="space-y-2 mb-4"></div><input type="range" id="zen-volume-slider" min="0" max="1" step="0.05" value="0.5" class="w-full"></div></div><button id="exit-zen-btn" class="btn btn-danger btn-icon w-16 h-16"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button></div><audio id="audio-rain" src="https://www.soundjay.com/nature/rain-light-2.mp3" loop></audio><audio id="audio-forest" src="https://www.soundjay.com/nature/forest-reverb-1.mp3" loop></audio><audio id="audio-whitenoise" src="https://www.soundjay.com/nature/white-noise-1.mp3" loop></audio></section>
+    <div id="subtask-modal" class="modal-overlay"><div class="modal-content glass-pane w-11/12 max-w-md p-6"><h2 class="font-heading text-2xl uppercase mb-4">Añadir Subtarea</h2><input type="text" id="subtask-input" class="input-field mb-4" placeholder="Descripción..."><div class="flex gap-4"><button id="confirm-add-subtask-btn" class="flex-1 btn btn-primary">Añadir</button><button id="cancel-add-subtask-btn" class="flex-1 btn">Cancelar</button></div></div></div>
+    <div id="confirm-zen-log-modal" class="modal-overlay"><div id="confirm-zen-log-content" class="modal-content glass-pane w-11/12 max-w-md p-6 text-center"></div></div>
+    <div id="achievement-toast" class="glass-pane"><div id="achievement-toast-content" class="flex items-center gap-4 text-primary"></div></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- SELECTORES ---
+        const mainAppUI = document.getElementById('main-app-ui');
+        const views = { setup: document.getElementById('setup-view'), dashboard: document.getElementById('dashboard-view'), details: document.getElementById('details-view'), form: document.getElementById('form-view'), settings: document.getElementById('settings-view'), zen: document.getElementById('zen-view'), schedule: document.getElementById('schedule-view'), subjectForm: document.getElementById('subject-form-view'), calendar: document.getElementById('calendar-view') };
+        const buttons = {
+            backToDashboard: document.getElementById('back-to-dashboard-btn'), editTask: document.getElementById('edit-task-btn'), cancelForm: document.getElementById('cancel-form-btn'), saveTask: document.getElementById('save-task-btn'),
+            exportData: document.getElementById('export-btn'), importData: document.getElementById('import-btn'), resetApp: document.getElementById('reset-app-btn'),
+            desktopDashboard: document.getElementById('desktop-dashboard-btn'), desktopSchedule: document.getElementById('desktop-schedule-btn'), desktopCalendar: document.getElementById('desktop-calendar-btn'), desktopSettings: document.getElementById('desktop-settings-btn'), desktopAddTask: document.getElementById('desktop-add-task-btn'),
+            mobileDashboard: document.getElementById('mobile-dashboard-btn'), mobileSchedule: document.getElementById('mobile-schedule-btn'), mobileCalendar: document.getElementById('mobile-calendar-btn'), mobileSettings: document.getElementById('mobile-settings-btn'), mobileAddTask: document.getElementById('mobile-add-task-btn'),
+            saveWallpaperUrl: document.getElementById('save-wallpaper-url-btn'), resetWallpaper: document.getElementById('reset-wallpaper-btn'),
+            startZenSession: document.getElementById('start-zen-session-btn'), exitZen: document.getElementById('exit-zen-btn'),
+            dashboardZen: document.getElementById('dashboard-zen-btn'), // Botón Zen del Dashboard
+            addSubject: document.getElementById('add-subject-btn'), cancelSubjectForm: document.getElementById('cancel-subject-form-btn'), saveSubject: document.getElementById('save-subject-btn'),
+            calendarPrevMonth: document.getElementById('calendar-prev-month-btn'), calendarNextMonth: document.getElementById('calendar-next-month-btn'),
+        };
+        const inputs = { username: document.getElementById('username-input'), importFile: document.getElementById('import-file-input'), wallpaperUrl: document.getElementById('wallpaper-url-input'), wallpaperFile: document.getElementById('wallpaper-file-input') };
+        const containers = {
+            pendingTasks: document.getElementById('pending-tasks-container'), taskDetails: document.getElementById('task-details-content'), subtasksFormList: document.getElementById('subtasks-form-list'),
+            greetingText: document.getElementById('greeting-text'), dashboardSummary: document.getElementById('dashboard-summary'), motivationalQuote: document.getElementById('motivational-quote'),
+            focusCard: document.getElementById('focus-card-container'), taskFilters: document.getElementById('task-filters'), streak: document.getElementById('streak-text'),
+            scheduleList: document.getElementById('schedule-list-container'), calendarGrid: document.getElementById('calendar-grid'), calendarTitle: document.getElementById('calendar-title'), calendarTasks: document.getElementById('calendar-tasks-container'),
+        };
+        const formElements = {
+            setupForm: document.getElementById('setup-form'), form: document.getElementById('task-form'), formTitle: document.getElementById('form-title'), taskIdInput: document.getElementById('task-id-input'), title: document.getElementById('task-title'),
+            description: document.getElementById('task-description'), dueDate: document.getElementById('task-due-date'), priority: document.getElementById('task-priority'), tags: document.getElementById('task-tags'),
+            subjectForm: document.getElementById('subject-form'), subjectFormTitle: document.getElementById('subject-form-title'), subjectIdInput: document.getElementById('subject-id-input'),
+            subjectName: document.getElementById('subject-name'), subjectDay: document.getElementById('subject-day'), subjectStartTime: document.getElementById('subject-start-time'), subjectEndTime: document.getElementById('subject-end-time'),
+        };
+        const modal = { element: document.getElementById('subtask-modal'), input: document.getElementById('subtask-input'), confirmBtn: document.getElementById('confirm-add-subtask-btn'), cancelBtn: document.getElementById('cancel-add-subtask-btn'), addBtnForm: document.getElementById('add-subtask-form-btn') };
+        const zen = {
+            timerDisplay: document.getElementById('zen-timer-display'), statusText: document.getElementById('zen-status-text'), canvas: document.getElementById('zen-canvas'),
+            borderTop: document.getElementById('border-top'), borderRight: document.getElementById('border-right'), borderBottom: document.getElementById('border-bottom'), borderLeft: document.getElementById('border-left'),
+            pomodoroDurationInput: document.getElementById('zen-pomodoro-duration'), shortBreakDurationInput: document.getElementById('zen-short-break-duration'), longBreakDurationInput: document.getElementById('zen-long-break-duration'),
+            colorSelector: document.getElementById('zen-color-selector'), soundSelector: document.getElementById('zen-sound-selector'), volumeSlider: document.getElementById('zen-volume-slider'),
+            confirmLogModal: document.getElementById('confirm-zen-log-modal'), confirmLogContent: document.getElementById('confirm-zen-log-content')
+        };
+        const achievementToast = { element: document.getElementById('achievement-toast'), content: document.getElementById('achievement-toast-content') };
+
+        // --- ESTADO Y LÓGICA DE DATOS ---
+        const motivationalQuotes = [ "El secreto para salir adelante es empezar.", "La disciplina es el puente entre las metas y los logros.", "No mires el reloj; haz lo que él hace. Sigue moviéndote." ];
+        const sounds = [ { id: 'rain', name: 'Lluvia Ligera', element: document.getElementById('audio-rain') }, { id: 'forest', name: 'Bosque', element: document.getElementById('audio-forest') }, { id: 'whitenoise', name: 'Ruido Blanco', element: document.getElementById('audio-whitenoise') } ];
+        const getDefaultState = () => ({ userName: null, tasks: [], schedule: [], currentView: 'dashboard', selectedTaskId: null, selectedSubjectId: null, tempSubtasks: [], calendarDate: new Date().toISOString(), wallpaper: null, filters: { priority: 'all', tag: 'all' }, zenSettings: { pomodoro: 25, shortBreak: 5, longBreak: 15, color: '#00F0FF' }, gamification: { streak: 0, lastCompletionDate: null, achievements: [], pomodoroCount: 0 }, currentZenTaskId: null });
+        let state = getDefaultState();
+        let countdownInterval = null, taskObserver = null;
+        let zenState = { timerId: null, particleAnimationId: null, currentSound: null };
+        const dataService = {
+            async getData() { return new Promise(resolve => { const d = localStorage.getItem('fluir-app-data-v6'); resolve(d ? { ...getDefaultState(), ...JSON.parse(d) } : getDefaultState()); }); },
+            async saveData(appState) { return new Promise(resolve => { localStorage.setItem('fluir-app-data-v6', JSON.stringify(appState)); resolve(); }); }
+        };
+        const achievementDefs = { 'focusMaster': { name: 'Maestro del Enfoque', description: 'Completa 10 sesiones Pomodoro.', icon: '🏆', condition: (s) => s.gamification.pomodoroCount >= 10 }, 'firstStep': { name: 'Primer Paso', description: 'Completa tu primera tarea.', icon: '🎉', condition: (s) => s.tasks.some(t => t.completed) }, 'weekStreak': { name: 'Imparable', description: 'Mantén una racha de 7 días.', icon: '🚀', condition: (s) => s.gamification.streak >= 7 } };
+        async function checkAchievements() { let unlocked = false; for (const id in achievementDefs) { if (!state.gamification.achievements.includes(id) && achievementDefs[id].condition(state)) { state.gamification.achievements.push(id); showAchievementToast(achievementDefs[id]); unlocked = true; } } if (unlocked) await dataService.saveData(state); }
+        function showAchievementToast(achievement) { achievementToast.content.innerHTML = `<span class="text-3xl">${achievement.icon}</span><div><h3 class="font-bold text-lg">${achievement.name}</h3><p class="text-sm">${achievement.description}</p></div>`; achievementToast.element.style.setProperty('--accent-primary', state.zenSettings.color); achievementToast.element.classList.add('show'); setTimeout(() => achievementToast.element.classList.remove('show'), 5000); }
+        async function updateStreak() { const today = new Date().toISOString().split('T')[0]; if (state.gamification.lastCompletionDate !== today) { const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1); state.gamification.streak = state.gamification.lastCompletionDate === yesterday.toISOString().split('T')[0] ? state.gamification.streak + 1 : 1; state.gamification.lastCompletionDate = today; await dataService.saveData(state); await checkAchievements(); } }
+        async function exportData() { if (!state.userName) return; const dataStr = JSON.stringify({ ...state, wallpaper: state.wallpaper?.startsWith('data:') ? null : state.wallpaper }, null, 2); const blob = new Blob([dataStr], {type: "application/json"}); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `fluir_backup_${new Date().toISOString().split('T')[0]}.flu`; a.click(); URL.revokeObjectURL(a.href); }
+        function importData(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = async (e) => { try { const imported = JSON.parse(e.target.result); if (!imported.userName) throw new Error("Formato inválido."); if (confirm("¿Sobrescribir datos actuales?")) { state = { ...getDefaultState(), ...imported }; await dataService.saveData(state); location.reload(); } } catch (err) { alert(`Error: ${err.message}`); } }; reader.readAsText(file); event.target.value = ''; }
+        async function resetApp() { if(confirm("¡ADVERTENCIA! Se borrarán todos los datos.")){ localStorage.clear(); location.reload(); } }
+        function applyAppearance() { document.body.style.backgroundImage = `url('${state.wallpaper || "https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/flowers.jpg"}')`; document.documentElement.style.setProperty('--accent-primary', state.zenSettings.color); }
+        async function handleWallpaperUrl() { const url = inputs.wallpaperUrl.value.trim(); if (url) { state.wallpaper = url; await dataService.saveData(state); applyAppearance(); } }
+        function handleWallpaperFile(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = async e => { state.wallpaper = e.target.result; await dataService.saveData(state); applyAppearance(); }; reader.readAsDataURL(file); }
+        async function resetWallpaper() { state.wallpaper = null; await dataService.saveData(state); applyAppearance(); inputs.wallpaperUrl.value = ''; inputs.wallpaperFile.value = ''; }
+
+        // --- NAVEGACIÓN Y RENDERIZADO ---
+        function navigateTo(viewName) { if (countdownInterval) clearInterval(countdownInterval); if (taskObserver) taskObserver.disconnect(); if (state.currentView === 'zen' && viewName !== 'zen') stopZenMode(); const currentViewElement = views[state.currentView], nextViewElement = views[viewName]; if (currentViewElement && nextViewElement) { currentViewElement.classList.add('is-exiting'); setTimeout(() => { currentViewElement.classList.remove('active', 'is-exiting'); currentViewElement.style.display = 'none'; nextViewElement.style.display = 'block'; nextViewElement.classList.add('active', 'is-entering'); setTimeout(() => nextViewElement.classList.remove('is-entering'), 400); state.currentView = viewName; updateNavActiveState(viewName); window.scrollTo(0, 0); if (viewName === 'dashboard') renderDashboard(); if (viewName === 'settings') renderSettings(); if (viewName === 'schedule') renderSchedule(); if (viewName === 'calendar') renderCalendar(); if (viewName === 'zen') startZenMode(); }, 400); } }
+        function updateNavActiveState(activeView) { document.querySelectorAll('.desktop-nav-btn, .mobile-nav-btn').forEach(btn => btn.classList.remove('active')); const desktopBtn = document.getElementById(`desktop-${activeView}-btn`); if(desktopBtn) desktopBtn.classList.add('active'); const mobileBtn = document.getElementById(`mobile-${activeView}-btn`); if(mobileBtn) mobileBtn.classList.add('active'); }
+        function updateCountdownTimers() { document.querySelectorAll('.countdown-timer.is-visible').forEach(timer => { const diff = new Date(timer.dataset.dueDate) - new Date(); if (diff <= 0) { timer.innerHTML = `<span style="color: var(--danger-color);" class="font-bold">Vencido</span>`; return; } const d = Math.floor(diff / 864e5), h = Math.floor((diff % 864e5) / 36e5), m = Math.floor((diff % 36e5) / 6e4), s = Math.floor((diff % 6e4) / 1e3); timer.textContent = `${d > 0 ? d + 'd ' : ''}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; }); }
+        function startCountdownTimers() { if (!countdownInterval) { updateCountdownTimers(); countdownInterval = setInterval(updateCountdownTimers, 1000); } }
+        function setupTaskObserver() { if (taskObserver) taskObserver.disconnect(); taskObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { const timer = entry.target.querySelector('.countdown-timer'); if (timer) entry.isIntersecting ? timer.classList.add('is-visible') : timer.classList.remove('is-visible'); }); }, { threshold: 0.1 }); document.querySelectorAll('.task-card').forEach(card => taskObserver.observe(card)); }
+        function createProgressCircle(percentage, size = 40) { const sW = size / 10, r = (size / 2) - (sW / 2), c = 2 * Math.PI * r, o = c - (percentage / 100) * c; return `<svg style="width:${size}px; height:${size}px;" viewBox="0 0 ${size} ${size}"><circle stroke-width="${sW}" stroke="rgba(255,255,255,0.3)" fill="transparent" r="${r}" cx="${size/2}" cy="${size/2}"/><circle stroke-width="${sW}" stroke-dasharray="${c}" stroke-dashoffset="${o}" stroke-linecap="round" stroke="var(--text-primary)" fill="transparent" r="${r}" cx="${size/2}" cy="${size/2}" style="transition: stroke-dashoffset 0.5s ease; transform: rotate(-90deg); transform-origin: center;"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" class="font-bold" style="fill: var(--text-primary); font-size: ${size / 4.5}px;">${Math.round(percentage)}%</text></svg>`; }
+        function createTaskCard(task) { let progress = 0, statusText = ''; if (task.subtasks.length > 0) { const completed = task.subtasks.filter(st => st.completed).length; progress = (completed / task.subtasks.length) * 100; statusText = `${completed}/${task.subtasks.length}`; } else { progress = task.completed ? 100 : 0; statusText = task.completed ? '¡Hecho!' : 'Simple'; } const card = document.createElement('div'); card.className = `task-card glass-pane p-4 priority-${task.priority}`; card.dataset.taskId = task.id; let timeInfoHTML = ''; if(task.dueDate && !task.completed) { timeInfoHTML = `<p class="text-sm text-secondary">Entrega: ${new Date(task.dueDate).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p><p class="text-sm font-semibold countdown-timer" data-due-date="${task.dueDate}"></p>`; } else { timeInfoHTML = `<p class="text-sm text-secondary">${task.completed ? 'Completado' : 'Sin fecha'}</p>`; } const tagsHTML = task.tags.map(tag => `<span class="tag">${tag}</span>`).join(''); card.innerHTML = `<div class="flex justify-between items-center"><div class="flex-grow mr-4 min-w-0"><h3 class="font-bold text-lg break-words ${task.completed ? 'line-through text-secondary' : ''}">${task.title}</h3>${timeInfoHTML}<div class="flex gap-2 mt-2 flex-wrap">${tagsHTML}</div></div><div class="flex-shrink-0 flex flex-col items-center justify-center">${createProgressCircle(progress, 60)}<span class="text-xs font-semibold mt-1">${statusText}</span></div></div>`; card.addEventListener('click', () => { state.selectedTaskId = task.id; renderTaskDetails(); navigateTo('details'); }); return card; }
+        function renderDashboard() { containers.greetingText.textContent = `Hola, ${state.userName}!`; const pendingCount = state.tasks.filter(t => !t.completed).length; containers.dashboardSummary.textContent = pendingCount > 0 ? `Tienes ${pendingCount} tarea${pendingCount > 1 ? 's' : ''} pendiente${pendingCount > 1 ? 's' : ''}.` : '¡No tienes tareas pendientes!'; containers.motivationalQuote.textContent = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]; containers.streak.textContent = `${state.gamification.streak} día${state.gamification.streak !== 1 ? 's' : ''}`; renderTaskFilters(); renderFocusCard(); const activeTasks = state.tasks.filter(t => !t.completed).sort((a, b) => (a.dueDate && b.dueDate) ? new Date(a.dueDate) - new Date(b.dueDate) : a.dueDate ? -1 : 1); const filteredTasks = activeTasks.filter(t => (state.filters.priority === 'all' || t.priority === state.filters.priority) && (state.filters.tag === 'all' || t.tags.includes(state.filters.tag))); containers.pendingTasks.innerHTML = ''; if (filteredTasks.length > 0) { filteredTasks.forEach(task => containers.pendingTasks.appendChild(createTaskCard(task))); } else { containers.pendingTasks.innerHTML = `<div class="glass-pane p-6 text-center col-span-full"><h3 class="font-heading text-xl uppercase">Todo en orden</h3><p class="mt-1 text-sm text-secondary">No hay tareas que coincidan con tus filtros.</p></div>`; } startCountdownTimers(); setupTaskObserver(); }
+        function renderFocusCard() { containers.focusCard.innerHTML = ''; const focusTask = state.tasks.filter(t => !t.completed && t.dueDate).sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))[0]; if (focusTask) { const card = createTaskCard(focusTask); card.classList.add('focus-card', 'glass-pane-light'); containers.focusCard.appendChild(card); } else { containers.focusCard.innerHTML = `<div class="glass-pane glass-pane-light p-6 text-center"><h3 class="font-heading text-xl uppercase">Todo tranquilo</h3><p class="mt-1 text-sm text-secondary">No hay tareas urgentes. ¡Disfruta o añade un proyecto!</p></div>`; } }
+        function renderTaskFilters() { const allTags = [...new Set(state.tasks.flatMap(t => t.tags))]; containers.taskFilters.innerHTML = `<select id="priority-filter" class="input-field !py-1 !w-auto"><option value="all">Prioridad</option><option value="high">Alta</option><option value="medium">Media</option><option value="low">Baja</option></select><select id="tag-filter" class="input-field !py-1 !w-auto"><option value="all">Etiqueta</option>${allTags.map(tag => `<option value="${tag}">${tag}</option>`).join('')}</select>`; const priorityFilter = document.getElementById('priority-filter'), tagFilter = document.getElementById('tag-filter'); priorityFilter.value = state.filters.priority; tagFilter.value = state.filters.tag; priorityFilter.addEventListener('change', (e) => { state.filters.priority = e.target.value; renderDashboard(); }); tagFilter.addEventListener('change', (e) => { state.filters.tag = e.target.value; renderDashboard(); }); }
+        async function renderTaskDetails() { const task = state.tasks.find(t => t.id === state.selectedTaskId); if (!task) return; let progress = 0; if (task.subtasks.length > 0) { const completed = task.subtasks.filter(st => st.completed).length; progress = (completed / task.subtasks.length) * 100; } else { progress = task.completed ? 100 : 0; } let detailsHTML = `<div class="flex flex-col items-center w-full"><div class="mb-6">${createProgressCircle(progress, 120)}</div><h2 class="font-heading text-3xl md:text-5xl uppercase mb-2 text-center break-words ${task.completed ? 'line-through text-secondary' : ''}">${task.title}</h2><div class="text-sm text-secondary mb-2 text-center">Prioridad: <span class="font-bold">${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span></div>${task.tags.length > 0 ? `<div class="flex gap-2 justify-center flex-wrap mb-6">${task.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}<p class="mb-8 text-center w-full max-w-2xl">${task.description || '<em>Sin descripción.</em>'}</p><div class="w-full border-t-2 border-white/20 pt-6">`; if (task.subtasks.length > 0) { const comp = task.subtasks.filter(st => st.completed).length; const total = task.subtasks.length; const subsHTML = task.subtasks.map(st => `<div class="subtask-item flex items-center gap-4 p-3 border-b-2 border-white/10" draggable="true" data-subtask-id="${st.id}"><span class="drag-handle text-secondary cursor-move">⠿</span><input type="checkbox" id="subtask-${st.id}" data-subtask-id="${st.id}" class="custom-checkbox" ${st.completed ? 'checked' : ''}><label for="subtask-${st.id}" class="flex-1 ${st.completed ? 'line-through text-secondary' : ''}">${st.text}</label></div>`).join(''); detailsHTML += `<h3 class="font-heading text-xl uppercase mb-4">Progreso (${comp}/${total})</h3><div id="subtasks-details-list">${subsHTML}</div><button id="add-subtask-details-btn" class="mt-4 btn text-sm">+ Añadir subtarea</button>`; } else { detailsHTML += `<div class="flex justify-center"><label for="complete-task-checkbox" class="flex items-center gap-4 cursor-pointer"><input type="checkbox" id="complete-task-checkbox" class="custom-checkbox w-8 h-8" ${task.completed ? 'checked' : ''}><span class="text-xl font-bold">Marcar como completada</span></label></div>`; } detailsHTML += `</div></div>`; containers.taskDetails.innerHTML = detailsHTML; setupSubtaskDragAndDrop('subtasks-details-list', task.id); if (task.subtasks.length > 0) { document.querySelectorAll('#subtasks-details-list input[type="checkbox"]').forEach(cb => { cb.addEventListener('change', async e => { const subtask = task.subtasks.find(st => st.id === e.target.dataset.subtaskId); if(subtask) { subtask.completed = e.target.checked; task.completed = task.subtasks.every(st => st.completed); if (task.completed) await updateStreak(); await dataService.saveData(state); await renderTaskDetails(); } }); }); document.getElementById('add-subtask-details-btn').addEventListener('click', () => { openSubtaskModal(); }); } else { document.getElementById('complete-task-checkbox').addEventListener('change', async e => { task.completed = e.target.checked; if (task.completed) await updateStreak(); await dataService.saveData(state); await renderTaskDetails(); }); } }
+        function renderFormSubtasks() { containers.subtasksFormList.innerHTML = state.tempSubtasks.map((st, i) => `<div class="subtask-item flex items-center justify-between p-2 rounded-lg" style="background: rgba(0,0,0,0.2);" draggable="true" data-index="${i}"><span class="drag-handle text-secondary cursor-move">⠿</span><span class="flex-1 px-2 text-secondary">${st.text}</span><button type="button" class="font-bold text-red-500 px-2" data-index="${i}">×</button></div>`).join(''); containers.subtasksFormList.querySelectorAll('button').forEach(btn => btn.addEventListener('click', e => { state.tempSubtasks.splice(e.target.dataset.index, 1); renderFormSubtasks(); })); setupSubtaskDragAndDrop('subtasks-form-list'); }
+        function renderSettings() { zen.pomodoroDurationInput.value = state.zenSettings.pomodoro; zen.shortBreakDurationInput.value = state.zenSettings.shortBreak; zen.longBreakDurationInput.value = state.zenSettings.longBreak; zen.colorSelector.querySelectorAll('button').forEach(b => b.style.border = b.dataset.color === state.zenSettings.color ? '3px solid white' : '3px solid transparent'); inputs.wallpaperUrl.value = (state.wallpaper && !state.wallpaper.startsWith('data:')) ? state.wallpaper : ''; }
+        function setupSubtaskDragAndDrop(containerId, taskId = null) { const list = document.getElementById(containerId); let draggedItem = null; list.addEventListener('dragstart', e => { draggedItem = e.target.closest('.subtask-item'); setTimeout(() => draggedItem?.classList.add('dragging'), 0); }); list.addEventListener('dragend', () => { draggedItem?.classList.remove('dragging'); draggedItem = null; }); list.addEventListener('dragover', e => { e.preventDefault(); const afterElement = [...list.querySelectorAll('.subtask-item:not(.dragging)')].reduce((closest, child) => { const box = child.getBoundingClientRect(); const offset = e.clientY - box.top - box.height / 2; return (offset < 0 && offset > closest.offset) ? { offset: offset, element: child } : closest; }, { offset: Number.NEGATIVE_INFINITY }).element; const currentDragged = document.querySelector('.dragging'); if (afterElement == null) { list.appendChild(currentDragged); } else { list.insertBefore(currentDragged, afterElement); } }); list.addEventListener('drop', async e => { e.preventDefault(); const newOrder = Array.from(list.querySelectorAll('.subtask-item')).map(item => taskId ? item.dataset.subtaskId : parseInt(item.dataset.index)); if (taskId) { const task = state.tasks.find(t => t.id === taskId); if (task) { task.subtasks.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id)); await dataService.saveData(state); } } else { state.tempSubtasks.sort((a, b) => newOrder.indexOf(state.tempSubtasks.indexOf(a)) - newOrder.indexOf(state.tempSubtasks.indexOf(b))); } }); }
+        function openSubtaskModal() { modal.element.classList.add('active'); modal.input.value = ''; modal.input.focus(); }
+        function closeSubtaskModal() { modal.element.classList.remove('active'); }
+        async function handleAddSubtask() { const text = modal.input.value.trim(); if (!text) return; if (state.currentView === 'form') { state.tempSubtasks.push({ text, completed: false }); renderFormSubtasks(); } else { const task = state.tasks.find(t => t.id === state.selectedTaskId); if (task) { task.subtasks.push({ id: `sub-${Date.now()}`, text, completed: false }); await dataService.saveData(state); await renderTaskDetails(); } } closeSubtaskModal(); }
+        function openNewTaskForm() { state.selectedTaskId = null; formElements.form.reset(); formElements.form.querySelector('#save-task-btn').textContent = 'Crear Proyecto'; formElements.formTitle.textContent = 'Nuevo Proyecto'; state.tempSubtasks = []; renderFormSubtasks(); navigateTo('form'); }
+        function openEditTaskForm(taskId) { const task = state.tasks.find(t => t.id === taskId); if (!task) return; state.selectedTaskId = taskId; formElements.form.reset(); formElements.form.querySelector('#save-task-btn').textContent = 'Guardar Cambios'; formElements.formTitle.textContent = 'Editar Proyecto'; formElements.title.value = task.title; formElements.description.value = task.description; if (task.dueDate) { formElements.dueDate.value = new Date(new Date(task.dueDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16); } formElements.priority.value = task.priority || 'medium'; formElements.tags.value = task.tags ? task.tags.join(', ') : ''; state.tempSubtasks = JSON.parse(JSON.stringify(task.subtasks)); renderFormSubtasks(); navigateTo('form'); }
+        
+        // --- LÓGICA DE HORARIO Y CALENDARIO ---
+        function renderSchedule() { containers.scheduleList.innerHTML = ''; if (state.schedule.length === 0) { containers.scheduleList.innerHTML = `<div class="text-center p-4"><h3 class="font-heading text-xl uppercase">Horario Vacío</h3><p class="mt-1 text-sm text-secondary">Añade tu primera materia para empezar.</p></div>`; return; } const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']; const scheduleByDay = days.map((_, dayIndex) => state.schedule.filter(s => s.day === dayIndex).sort((a,b) => a.startTime.localeCompare(b.startTime))); days.forEach((dayName, dayIndex) => { if (scheduleByDay[dayIndex].length > 0) { const dayGroup = document.createElement('div'); dayGroup.className = 'schedule-day-group'; let dayHTML = `<h3 class="font-heading text-2xl uppercase pb-2 border-b-2 border-white/20 mb-4">${dayName}</h3><div class="space-y-3">`; scheduleByDay[dayIndex].forEach(s => { dayHTML += `<div class="glass-pane p-4 flex justify-between items-center cursor-pointer" data-subject-id="${s.id}"><span class="font-bold">${s.name}</span><span class="text-secondary font-semibold">${s.startTime} - ${s.endTime}</span></div>`; }); dayHTML += `</div>`; dayGroup.innerHTML = dayHTML; containers.scheduleList.appendChild(dayGroup); } }); containers.scheduleList.querySelectorAll('[data-subject-id]').forEach(el => el.addEventListener('click', (e) => openEditSubjectForm(e.currentTarget.dataset.subjectId))); }
+        function openNewSubjectForm() { state.selectedSubjectId = null; formElements.subjectForm.reset(); formElements.subjectFormTitle.textContent = 'Nueva Materia'; formElements.saveSubject.textContent = 'Añadir Materia'; navigateTo('subjectForm'); }
+        function openEditSubjectForm(subjectId) { const subject = state.schedule.find(s => s.id === subjectId); if (!subject) return; state.selectedSubjectId = subjectId; formElements.subjectForm.reset(); formElements.subjectFormTitle.textContent = 'Editar Materia'; formElements.saveSubject.textContent = 'Guardar Cambios'; formElements.subjectName.value = subject.name; formElements.subjectDay.value = subject.day; formElements.subjectStartTime.value = subject.startTime; formElements.subjectEndTime.value = subject.endTime; navigateTo('subjectForm'); }
+        function renderCalendar() { const calDate = new Date(state.calendarDate); const y = calDate.getFullYear(), m = calDate.getMonth(); containers.calendarTitle.textContent = calDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase(); const firstDay = new Date(y, m, 1).getDay(); const daysInMonth = new Date(y, m + 1, 0).getDate(); containers.calendarGrid.innerHTML = ['D', 'L', 'M', 'X', 'J', 'V', 'S'].map(d => `<div class="font-bold text-secondary">${d}</div>`).join(''); for (let i = 0; i < firstDay; i++) containers.calendarGrid.innerHTML += `<div></div>`; const tasksByDate = {}; state.tasks.forEach(task => { if(task.dueDate){ const date = task.dueDate.split('T')[0]; if(!tasksByDate[date]) tasksByDate[date] = []; tasksByDate[date].push(task); }}); for (let day = 1; day <= daysInMonth; day++) { const el = document.createElement('div'); const fullDate = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; el.textContent = day; el.dataset.date = fullDate; if (tasksByDate[fullDate]) el.classList.add('has-task'); el.addEventListener('click', () => { document.querySelectorAll('#calendar-grid > div').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); renderTasksForDay(fullDate, tasksByDate[fullDate] || []); }); containers.calendarGrid.appendChild(el); } }
+        function renderTasksForDay(dateStr, tasks) { const date = new Date(dateStr + 'T00:00:00'); containers.calendarTasks.innerHTML = `<h3 class="font-heading text-xl uppercase mb-2">Tareas para el ${date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}</h3>`; if(tasks.length > 0) { containers.calendarTasks.innerHTML += tasks.map(task => `<div class="glass-pane p-3 cursor-pointer" data-task-id="${task.id}">${task.title}</div>`).join(''); containers.calendarTasks.querySelectorAll('[data-task-id]').forEach(el => el.addEventListener('click', e => { state.selectedTaskId = e.currentTarget.dataset.taskId; renderTaskDetails(); navigateTo('details'); })); } else { containers.calendarTasks.innerHTML += `<p class="text-secondary">No hay tareas programadas.</p>`; } }
+
+        // --- LÓGICA MODO ZEN ---
+        function startZenMode(cycleType = 'pomodoro', cycleCount = 0) { if (zenState.timerId) clearInterval(zenState.timerId); views.zen.classList.add('active'); let duration, statusText; switch(cycleType) { case 'shortBreak': duration = state.zenSettings.shortBreak * 60; statusText = 'DESCANSO CORTO'; break; case 'longBreak': duration = state.zenSettings.longBreak * 60; statusText = 'DESCANSO LARGO'; break; default: duration = state.zenSettings.pomodoro * 60; statusText = 'ENFOQUE'; } zen.statusText.textContent = statusText; let timeLeft = duration; zenState.timerId = setInterval(async () => { timeLeft--; const minutes = Math.floor(timeLeft / 60), seconds = timeLeft % 60; zen.timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`; updateBorderClock((duration - timeLeft) / duration); if (timeLeft <= 0) { clearInterval(zenState.timerId); if (cycleType === 'pomodoro') { state.gamification.pomodoroCount++; await updateStreak(); await dataService.saveData(state); if (state.currentZenTaskId) showZenLogConfirmation(); const newCycleCount = cycleCount + 1; startZenMode((newCycleCount % 4 === 0) ? 'longBreak' : 'shortBreak', newCycleCount); } else { startZenMode('pomodoro', cycleCount); } } }, 1000); startParticleAnimation(); }
+        function stopZenMode() { if (zenState.timerId) clearInterval(zenState.timerId); if (zenState.particleAnimationId) cancelAnimationFrame(zenState.particleAnimationId); views.zen.classList.remove('active'); updateBorderClock(0); state.currentZenTaskId = null; if (zenState.currentSound) { zenState.currentSound.pause(); zenState.currentSound.currentTime = 0; zenState.currentSound = null; } }
+        function updateBorderClock(p) { zen.borderTop.style.width = `${Math.min(p * 4, 1) * 100}%`; zen.borderRight.style.height = `${Math.min(Math.max(p * 4 - 1, 0), 1) * 100}%`; zen.borderBottom.style.width = `${Math.min(Math.max(p * 4 - 2, 0), 1) * 100}%`; zen.borderLeft.style.height = `${Math.min(Math.max(p * 4 - 3, 0), 1) * 100}%`; }
+        function showZenLogConfirmation() { const task = state.tasks.find(t => t.id === state.currentZenTaskId); if (!task) return; zen.confirmLogContent.innerHTML = `<h2 class="font-heading text-2xl uppercase mb-4">Sesión Completada</h2><p class="mb-6 text-secondary">¿Registrar ${state.zenSettings.pomodoro} min en la tarea "${task.title}"?</p><div class="flex gap-4"><button id="confirm-log-yes" class="flex-1 btn btn-primary">Sí</button><button id="confirm-log-no" class="flex-1 btn">No</button></div>`; zen.confirmLogModal.classList.add('active'); document.getElementById('confirm-log-yes').onclick = async () => { if (!task.zenSessions) task.zenSessions = []; task.zenSessions.push({ date: new Date().toISOString(), duration: state.zenSettings.pomodoro }); await dataService.saveData(state); zen.confirmLogModal.classList.remove('active'); state.currentZenTaskId = null; }; document.getElementById('confirm-log-no').onclick = () => { zen.confirmLogModal.classList.remove('active'); state.currentZenTaskId = null; }; }
+        function startParticleAnimation() { const ctx = zen.canvas.getContext('2d'); let particles = []; zen.canvas.width = window.innerWidth; zen.canvas.height = window.innerHeight; class Particle { constructor() { this.angle = Math.random() * Math.PI * 2; this.radius = 0; this.speed = Math.random() * 0.5 + 0.1; this.size = Math.random() * 2 + 1; this.color = state.zenSettings.color; } update(pulse) { this.radius += this.speed; const pulseEffect = this.radius * (0.15 * pulse); this.x = zen.canvas.width / 2 + Math.cos(this.angle) * (this.radius + pulseEffect); this.y = zen.canvas.height / 2 + Math.sin(this.angle) * (this.radius + pulseEffect); } draw() { ctx.globalAlpha = 1 - (this.radius / (zen.canvas.width / 2)); ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; } } for (let i = 0; i < 200; i++) particles.push(new Particle()); function animate() { ctx.clearRect(0, 0, zen.canvas.width, zen.canvas.height); const pulse = (1 + Math.sin(Date.now() / 800)) / 2; for (let i = 0; i < particles.length; i++) { particles[i].update(pulse); particles[i].draw(); if (particles[i].radius > zen.canvas.width / 2) { particles.splice(i, 1, new Particle()); } } zenState.particleAnimationId = requestAnimationFrame(animate); } animate(); }
+        function renderZenSoundControls() { zen.soundSelector.innerHTML = sounds.map(s => `<button data-sound-id="${s.id}" class="sound-select-btn w-full text-left p-2 rounded-lg hover:bg-white/10 transition-colors">${s.name}</button>`).join(''); zen.soundSelector.querySelectorAll('.sound-select-btn').forEach(btn => btn.addEventListener('click', () => { const sound = sounds.find(s => s.id === btn.dataset.soundId); if (zenState.currentSound === sound.element) { zenState.currentSound.pause(); zenState.currentSound = null; btn.classList.remove('active'); } else { sounds.forEach(s => s.element.pause()); zenState.currentSound = sound.element; zenState.currentSound.volume = zen.volumeSlider.value; zenState.currentSound.play(); document.querySelectorAll('.sound-select-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); } })); }
+
+        // --- EVENT HANDLERS ---
+        formElements.setupForm.addEventListener('submit', async (e) => { e.preventDefault(); const name = inputs.username.value.trim(); if(name){ state.userName = name; await dataService.saveData(state); views.setup.style.display = 'none'; mainAppUI.style.display = 'block'; renderDashboard(); navigateTo('dashboard'); } });
+        [buttons.desktopAddTask, buttons.mobileAddTask].forEach(btn => btn.addEventListener('click', openNewTaskForm));
+        buttons.backToDashboard.addEventListener('click', () => navigateTo('dashboard'));
+        buttons.editTask.addEventListener('click', () => { if (state.selectedTaskId) openEditTaskForm(state.selectedTaskId); });
+        buttons.cancelForm.addEventListener('click', () => { state.selectedTaskId ? navigateTo('details') : navigateTo('dashboard'); });
+        buttons.startZenSession.addEventListener('click', () => { state.currentZenTaskId = state.selectedTaskId; navigateTo('zen'); });
+        buttons.dashboardZen.addEventListener('click', () => { state.currentZenTaskId = null; navigateTo('zen'); });
+        buttons.exitZen.addEventListener('click', () => navigateTo('dashboard'));
+        formElements.form.addEventListener('submit', async (e) => { e.preventDefault(); const title = formElements.title.value.trim(); if (!title) return; const tags = formElements.tags.value.split(',').map(t => t.trim()).filter(t => t); const commonData = { title, description: formElements.description.value.trim(), dueDate: formElements.dueDate.value, priority: formElements.priority.value, tags, subtasks: state.tempSubtasks.map((st, i) => ({ id: st.id || `sub-${Date.now()}-${i}`, text: st.text, completed: st.completed || false })) }; if (state.selectedTaskId) { const taskIndex = state.tasks.findIndex(t => t.id === state.selectedTaskId); if (taskIndex > -1) { const originalTask = state.tasks[taskIndex]; state.tasks[taskIndex] = { ...originalTask, ...commonData, completed: commonData.subtasks.length > 0 ? commonData.subtasks.every(st => st.completed) : originalTask.completed }; } } else { state.tasks.push({ ...commonData, id: `task-${Date.now()}`, createdAt: new Date().toISOString(), completed: false }); } await dataService.saveData(state); state.selectedTaskId ? renderTaskDetails() : renderDashboard(); navigateTo(state.selectedTaskId ? 'details' : 'dashboard'); });
+        [buttons.desktopDashboard, buttons.mobileDashboard].forEach(btn => btn.addEventListener('click', () => navigateTo('dashboard')));
+        [buttons.desktopSchedule, buttons.mobileSchedule].forEach(btn => btn.addEventListener('click', () => navigateTo('schedule')));
+        [buttons.desktopCalendar, buttons.mobileCalendar].forEach(btn => btn.addEventListener('click', () => navigateTo('calendar')));
+        [buttons.desktopSettings, buttons.mobileSettings].forEach(btn => btn.addEventListener('click', () => navigateTo('settings')));
+        buttons.addSubject.addEventListener('click', openNewSubjectForm);
+        buttons.cancelSubjectForm.addEventListener('click', () => navigateTo('schedule'));
+        formElements.subjectForm.addEventListener('submit', async (e) => { e.preventDefault(); const name = formElements.subjectName.value.trim(); if (!name) return; const subjectData = { name, day: parseInt(formElements.subjectDay.value), startTime: formElements.subjectStartTime.value, endTime: formElements.subjectEndTime.value }; if (state.selectedSubjectId) { const index = state.schedule.findIndex(s => s.id === state.selectedSubjectId); if (index > -1) state.schedule[index] = { ...state.schedule[index], ...subjectData }; } else { state.schedule.push({ ...subjectData, id: `sub-${Date.now()}` }); } await dataService.saveData(state); renderSchedule(); navigateTo('schedule'); });
+        buttons.calendarPrevMonth.addEventListener('click', () => { const d = new Date(state.calendarDate); d.setMonth(d.getMonth() - 1); state.calendarDate = d.toISOString(); renderCalendar(); });
+        buttons.calendarNextMonth.addEventListener('click', () => { const d = new Date(state.calendarDate); d.setMonth(d.getMonth() + 1); state.calendarDate = d.toISOString(); renderCalendar(); });
+        buttons.importData.addEventListener('click', () => inputs.importFile.click());
+        inputs.importFile.addEventListener('change', importData);
+        buttons.exportData.addEventListener('click', exportData);
+        buttons.resetApp.addEventListener('click', resetApp);
+        modal.addBtnForm.addEventListener('click', openSubtaskModal); 
+        modal.confirmBtn.addEventListener('click', handleAddSubtask); 
+        modal.cancelBtn.addEventListener('click', closeSubtaskModal);
+        modal.input.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddSubtask(); });
+        buttons.saveWallpaperUrl.addEventListener('click', handleWallpaperUrl);
+        inputs.wallpaperFile.addEventListener('change', handleWallpaperFile);
+        buttons.resetWallpaper.addEventListener('click', resetWallpaper);
+        zen.pomodoroDurationInput.addEventListener('change', async (e) => { state.zenSettings.pomodoro = parseInt(e.target.value); await dataService.saveData(state); });
+        zen.shortBreakDurationInput.addEventListener('change', async (e) => { state.zenSettings.shortBreak = parseInt(e.target.value); await dataService.saveData(state); });
+        zen.longBreakDurationInput.addEventListener('change', async (e) => { state.zenSettings.longBreak = parseInt(e.target.value); await dataService.saveData(state); });
+        zen.colorSelector.querySelectorAll('button').forEach(btn => btn.addEventListener('click', async () => { state.zenSettings.color = btn.dataset.color; applyAppearance(); renderSettings(); await dataService.saveData(state); }));
+        zen.volumeSlider.addEventListener('input', e => { if (zenState.currentSound) zenState.currentSound.volume = e.target.value; });
+
+        // --- INICIALIZACIÓN ---
+        async function init() {
+            state = await dataService.getData();
+            applyAppearance();
+            renderZenSoundControls();
+            if (state.userName) {
+                mainAppUI.style.display = 'block';
+                renderDashboard();
+                navigateTo('dashboard');
+                await checkAchievements();
+            } else {
+                views.setup.style.display = 'flex';
+            }
+        }
+        
+        init();
+    });
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').then(()=>console.log('SW registered')).catch(e=>console.log('SW error', e)); }); }
+    </script>
+</body>
+</html>
