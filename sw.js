@@ -1,73 +1,68 @@
-const CACHE_NAME = 'fluir-cache-v2'; // Versión actualizada del caché
+// Define un nombre y una versión para tu caché
+const CACHE_NAME = 'fluir-cache-v1.0';
 
-// Lista de archivos locales esenciales para el shell de la aplicación.
-// Usamos rutas relativas para que funcione en GitHub Pages.
+// Lista de archivos y recursos esenciales para que la app funcione sin conexión
 const urlsToCache = [
-  '.', // Representa el directorio raíz (index.html)
-  'index.html',
-  'manifest.json',
+  '/', // La raíz de la app
+  'index.html', // El archivo HTML principal
+  // Recursos externos (¡importante para el modo offline!)
+  'https://cdn.tailwindcss.com',
+  'https://fonts.googleapis.com/css2?family=Kdam+Thmor+Pro&family=Inter:wght@400;600;700&display=swap',
+  'https://raw.githubusercontent.com/lucasromerodb/liquid-glass-effect-macos/refs/heads/main/assets/flowers.jpg',
+  // Sonidos del modo Zen
+  'https://www.soundjay.com/nature/rain-light-2.mp3',
+  'https://www.soundjay.com/nature/forest-reverb-1.mp3',
+  'https://www.soundjay.com/nature/white-noise-1.mp3',
+  // Iconos de la app
   'icons/icon-192x192.png',
   'icons/icon-512x512.png'
 ];
 
-// Evento 'install': Guarda el shell de la aplicación en el caché.
+// Evento 'install': Se dispara cuando el Service Worker se instala por primera vez.
 self.addEventListener('install', event => {
+  // Espera hasta que la promesa dentro de waitUntil se resuelva
   event.waitUntil(
+    // Abre la caché con el nombre que definimos
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Service Worker: Abriendo y cacheando el App Shell.');
+        console.log('Cache abierta exitosamente');
+        // Añade todos los recursos de nuestra lista a la caché
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// Evento 'activate': Limpia los cachés antiguos.
+// Evento 'fetch': Se dispara cada vez que la app realiza una petición de red (pide un archivo, una imagen, etc.)
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    // Intenta encontrar una respuesta para esta petición en nuestra caché
+    caches.match(event.request)
+      .then(response => {
+        // Si encontramos una respuesta en la caché, la devolvemos
+        if (response) {
+          return response;
+        }
+        // Si no, realizamos la petición a la red como se haría normalmente
+        return fetch(event.request);
+      })
+  );
+});
+
+// Evento 'activate': Se dispara cuando el Service Worker se activa.
+// Es un buen lugar para limpiar cachés antiguas.
 self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME]; // Lista de cachés que queremos mantener
+
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Service Worker: Borrando caché antiguo:', cacheName);
+          // Si una caché no está en nuestra lista blanca, la eliminamos
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
             return caches.delete(cacheName);
           }
         })
       );
     })
-  );
-});
-
-// Evento 'fetch': Sirve los archivos desde el caché o la red.
-// Estrategia: Cache-First, luego Network y guardar en caché.
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(cachedResponse => {
-        // Si el recurso está en el caché, lo devolvemos.
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-
-        // Si no, lo buscamos en la red.
-        return fetch(event.request).then(
-          networkResponse => {
-            // Verificamos que la respuesta sea válida.
-            if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-              return networkResponse;
-            }
-            
-            // Clonamos la respuesta. Una se guarda en el caché y la otra se envía al navegador.
-            const responseToCache = networkResponse.clone();
-
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                // Guardamos la nueva respuesta en el caché para uso futuro.
-                cache.put(event.request, responseToCache);
-              });
-
-            return networkResponse;
-          }
-        );
-      })
   );
 });
