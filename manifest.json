@@ -1,11 +1,11 @@
 {
-  "name": "Fluir",
+  "name": "Fluir: Gestión y Enfoque",
   "short_name": "Fluir",
-  "description": "Una aplicación para la gestión de tareas y horarios.",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#EAEAFE",
-  "theme_color": "#C8FF00",
+  "background_color": "#0C0A1A",
+  "theme_color": "#0C0A1A",
+  "description": "Una PWA para gestionar tus tareas, organizar tu horario y mejorar tu concentración.",
   "icons": [
     {
       "src": "icons/icon-192x192.png",
