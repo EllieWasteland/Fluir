@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = { element: document.getElementById('subtask-modal'), input: document.getElementById('subtask-input'), confirmBtn: document.getElementById('confirm-add-subtask-btn'), cancelBtn: document.getElementById('cancel-add-subtask-btn'), addBtnForm: document.getElementById('add-subtask-form-btn') };
     const zen = {
         timerDisplay: document.getElementById('zen-timer-display'), statusText: document.getElementById('zen-status-text'), canvas: document.getElementById('zen-canvas'),
+        progressRing: document.getElementById('zen-progress-ring'), progressBg: document.getElementById('zen-progress-bg'),
         borderTop: document.getElementById('border-top'), borderRight: document.getElementById('border-right'), borderBottom: document.getElementById('border-bottom'), borderLeft: document.getElementById('border-left'),
         pomodoroDurationInput: document.getElementById('zen-pomodoro-duration'), shortBreakDurationInput: document.getElementById('zen-short-break-duration'), longBreakDurationInput: document.getElementById('zen-long-break-duration'),
         colorSelector: document.getElementById('zen-color-selector'), soundSelector: document.getElementById('zen-sound-selector'), volumeSlider: document.getElementById('zen-volume-slider'),
@@ -59,8 +60,72 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleWallpaperFile(event) { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = async e => { state.wallpaper = e.target.result; await dataService.saveData(state); applyAppearance(); }; reader.readAsDataURL(file); }
     async function resetWallpaper() { state.wallpaper = null; await dataService.saveData(state); applyAppearance(); inputs.wallpaperUrl.value = ''; inputs.wallpaperFile.value = ''; }
 
+    // --- LÓGICA DE PANTALLA COMPLETA ---
+    function enterFullscreen(element) {
+        if (element.requestFullscreen) {
+            element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) { /* Firefox */
+            element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+            element.webkitRequestFullscreen();
+        } else if (element.msRequestFullscreen) { /* IE/Edge */
+            element.msRequestFullscreen();
+        }
+    }
+
+    function exitFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) { /* Firefox */
+            document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) { /* Chrome, Safari and Opera */
+            document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) { /* IE/Edge */
+            document.msExitFullscreen();
+        }
+    }
+
+    function handleFullscreenChange() {
+        if (!document.fullscreenElement && state.currentView === 'zen') {
+            navigateTo('dashboard');
+        }
+    }
+
+
     // --- NAVEGACIÓN Y RENDERIZADO ---
-    function navigateTo(viewName) { if (countdownInterval) clearInterval(countdownInterval); if (taskObserver) taskObserver.disconnect(); if (state.currentView === 'zen' && viewName !== 'zen') stopZenMode(); const currentViewElement = views[state.currentView], nextViewElement = views[viewName]; if (currentViewElement && nextViewElement) { currentViewElement.classList.add('is-exiting'); setTimeout(() => { currentViewElement.classList.remove('active', 'is-exiting'); currentViewElement.style.display = 'none'; nextViewElement.style.display = 'block'; nextViewElement.classList.add('active', 'is-entering'); setTimeout(() => nextViewElement.classList.remove('is-entering'), 400); state.currentView = viewName; updateNavActiveState(viewName); window.scrollTo(0, 0); if (viewName === 'dashboard') renderDashboard(); if (viewName === 'settings') renderSettings(); if (viewName === 'schedule') renderSchedule(); if (viewName === 'calendar') renderCalendar(); if (viewName === 'zen') startZenMode(); }, 400); } }
+    function navigateTo(viewName) {
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (taskObserver) taskObserver.disconnect();
+        
+        if (state.currentView === 'zen' && viewName !== 'zen') {
+            stopZenMode();
+            exitFullscreen();
+        }
+
+        const currentViewElement = views[state.currentView], nextViewElement = views[viewName];
+        if (currentViewElement && nextViewElement) {
+            currentViewElement.classList.add('is-exiting');
+            setTimeout(() => {
+                currentViewElement.classList.remove('active', 'is-exiting');
+                currentViewElement.style.display = 'none';
+                nextViewElement.style.display = 'block';
+                nextViewElement.classList.add('active', 'is-entering');
+                setTimeout(() => nextViewElement.classList.remove('is-entering'), 400);
+                state.currentView = viewName;
+                updateNavActiveState(viewName);
+                window.scrollTo(0, 0);
+
+                if (viewName === 'dashboard') renderDashboard();
+                if (viewName === 'settings') renderSettings();
+                if (viewName === 'schedule') renderSchedule();
+                if (viewName === 'calendar') renderCalendar();
+                if (viewName === 'zen') {
+                    enterFullscreen(document.documentElement);
+                    startZenMode();
+                }
+            }, 400);
+        }
+    }
     function updateNavActiveState(activeView) { document.querySelectorAll('.desktop-nav-btn, .mobile-nav-btn').forEach(btn => btn.classList.remove('active')); const desktopBtn = document.getElementById(`desktop-${activeView}-btn`); if(desktopBtn) desktopBtn.classList.add('active'); const mobileBtn = document.getElementById(`mobile-${activeView}-btn`); if(mobileBtn) mobileBtn.classList.add('active'); }
     function updateCountdownTimers() { document.querySelectorAll('.countdown-timer.is-visible').forEach(timer => { const diff = new Date(timer.dataset.dueDate) - new Date(); if (diff <= 0) { timer.innerHTML = `<span style="color: var(--danger-color);" class="font-bold">Vencido</span>`; return; } const d = Math.floor(diff / 864e5), h = Math.floor((diff % 864e5) / 36e5), m = Math.floor((diff % 36e5) / 6e4), s = Math.floor((diff % 6e4) / 1e3); timer.textContent = `${d > 0 ? d + 'd ' : ''}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; }); }
     function startCountdownTimers() { if (!countdownInterval) { updateCountdownTimers(); countdownInterval = setInterval(updateCountdownTimers, 1000); } }
@@ -88,12 +153,168 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderTasksForDay(dateStr, tasks) { const date = new Date(dateStr + 'T00:00:00'); containers.calendarTasks.innerHTML = `<h3 class="font-heading text-xl uppercase mb-2">Tareas para el ${date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}</h3>`; if(tasks.length > 0) { containers.calendarTasks.innerHTML += tasks.map(task => `<div class="glass-pane p-3 cursor-pointer" data-task-id="${task.id}">${task.title}</div>`).join(''); containers.calendarTasks.querySelectorAll('[data-task-id]').forEach(el => el.addEventListener('click', e => { state.selectedTaskId = e.currentTarget.dataset.taskId; renderTaskDetails(); navigateTo('details'); })); } else { containers.calendarTasks.innerHTML += `<p class="text-secondary">No hay tareas programadas.</p>`; } }
 
     // --- LÓGICA MODO ZEN ---
-    function startZenMode(cycleType = 'pomodoro', cycleCount = 0) { if (zenState.timerId) clearInterval(zenState.timerId); views.zen.classList.add('active'); let duration, statusText; switch(cycleType) { case 'shortBreak': duration = state.zenSettings.shortBreak * 60; statusText = 'DESCANSO CORTO'; break; case 'longBreak': duration = state.zenSettings.longBreak * 60; statusText = 'DESCANSO LARGO'; break; default: duration = state.zenSettings.pomodoro * 60; statusText = 'ENFOQUE'; } zen.statusText.textContent = statusText; let timeLeft = duration; zenState.timerId = setInterval(async () => { timeLeft--; const minutes = Math.floor(timeLeft / 60), seconds = timeLeft % 60; zen.timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`; updateBorderClock((duration - timeLeft) / duration); if (timeLeft <= 0) { clearInterval(zenState.timerId); if (cycleType === 'pomodoro') { state.gamification.pomodoroCount++; await updateStreak(); await dataService.saveData(state); if (state.currentZenTaskId) showZenLogConfirmation(); const newCycleCount = cycleCount + 1; startZenMode((newCycleCount % 4 === 0) ? 'longBreak' : 'shortBreak', newCycleCount); } else { startZenMode('pomodoro', cycleCount); } } }, 1000); startParticleAnimation(); }
-    function stopZenMode() { if (zenState.timerId) clearInterval(zenState.timerId); if (zenState.particleAnimationId) cancelAnimationFrame(zenState.particleAnimationId); views.zen.classList.remove('active'); updateBorderClock(0); state.currentZenTaskId = null; if (zenState.currentSound) { zenState.currentSound.pause(); zenState.currentSound.currentTime = 0; zenState.currentSound = null; } }
-    function updateBorderClock(p) { zen.borderTop.style.width = `${Math.min(p * 4, 1) * 100}%`; zen.borderRight.style.height = `${Math.min(Math.max(p * 4 - 1, 0), 1) * 100}%`; zen.borderBottom.style.width = `${Math.min(Math.max(p * 4 - 2, 0), 1) * 100}%`; zen.borderLeft.style.height = `${Math.min(Math.max(p * 4 - 3, 0), 1) * 100}%`; }
-    function showZenLogConfirmation() { const task = state.tasks.find(t => t.id === state.currentZenTaskId); if (!task) return; zen.confirmLogContent.innerHTML = `<h2 class="font-heading text-2xl uppercase mb-4">Sesión Completada</h2><p class="mb-6 text-secondary">¿Registrar ${state.zenSettings.pomodoro} min en la tarea "${task.title}"?</p><div class="flex gap-4"><button id="confirm-log-yes" class="flex-1 btn btn-primary">Sí</button><button id="confirm-log-no" class="flex-1 btn">No</button></div>`; zen.confirmLogModal.classList.add('active'); document.getElementById('confirm-log-yes').onclick = async () => { if (!task.zenSessions) task.zenSessions = []; task.zenSessions.push({ date: new Date().toISOString(), duration: state.zenSettings.pomodoro }); await dataService.saveData(state); zen.confirmLogModal.classList.remove('active'); state.currentZenTaskId = null; }; document.getElementById('confirm-log-no').onclick = () => { zen.confirmLogModal.classList.remove('active'); state.currentZenTaskId = null; }; }
-    function startParticleAnimation() { const ctx = zen.canvas.getContext('2d'); let particles = []; zen.canvas.width = window.innerWidth; zen.canvas.height = window.innerHeight; class Particle { constructor() { this.angle = Math.random() * Math.PI * 2; this.radius = 0; this.speed = Math.random() * 0.5 + 0.1; this.size = Math.random() * 2 + 1; this.color = state.zenSettings.color; } update(pulse) { this.radius += this.speed; const pulseEffect = this.radius * (0.15 * pulse); this.x = zen.canvas.width / 2 + Math.cos(this.angle) * (this.radius + pulseEffect); this.y = zen.canvas.height / 2 + Math.sin(this.angle) * (this.radius + pulseEffect); } draw() { ctx.globalAlpha = 1 - (this.radius / (zen.canvas.width / 2)); ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1; } } for (let i = 0; i < 200; i++) particles.push(new Particle()); function animate() { ctx.clearRect(0, 0, zen.canvas.width, zen.canvas.height); const pulse = (1 + Math.sin(Date.now() / 800)) / 2; for (let i = 0; i < particles.length; i++) { particles[i].update(pulse); particles[i].draw(); if (particles[i].radius > zen.canvas.width / 2) { particles.splice(i, 1, new Particle()); } } zenState.particleAnimationId = requestAnimationFrame(animate); } animate(); }
-    function renderZenSoundControls() { zen.soundSelector.innerHTML = sounds.map(s => `<button data-sound-id="${s.id}" class="sound-select-btn w-full text-left p-2 rounded-lg hover:bg-white/10 transition-colors">${s.name}</button>`).join(''); zen.soundSelector.querySelectorAll('.sound-select-btn').forEach(btn => btn.addEventListener('click', () => { const sound = sounds.find(s => s.id === btn.dataset.soundId); if (zenState.currentSound === sound.element) { zenState.currentSound.pause(); zenState.currentSound = null; btn.classList.remove('active'); } else { sounds.forEach(s => s.element.pause()); zenState.currentSound = sound.element; zenState.currentSound.volume = zen.volumeSlider.value; zenState.currentSound.play(); document.querySelectorAll('.sound-select-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); } })); }
+    function updateZenCircle(progress) { // progress is a value from 0 to 1
+        if (!zen.progressRing) return;
+        const circumference = parseFloat(zen.progressRing.style.strokeDasharray);
+        const offset = circumference - progress * circumference;
+        zen.progressRing.style.strokeDashoffset = Math.max(0, offset);
+    }
+    
+    function updateBorderClock(p) {
+        zen.borderTop.style.width = `${Math.min(p * 4, 1) * 100}%`;
+        zen.borderRight.style.height = `${Math.min(Math.max(p * 4 - 1, 0), 1) * 100}%`;
+        zen.borderBottom.style.width = `${Math.min(Math.max(p * 4 - 2, 0), 1) * 100}%`;
+        zen.borderLeft.style.height = `${Math.min(Math.max(p * 4 - 3, 0), 1) * 100}%`;
+    }
+
+    function startZenMode(cycleType = 'pomodoro', cycleCount = 0) {
+        if (zenState.timerId) clearInterval(zenState.timerId);
+        views.zen.classList.add('active');
+
+        // Setup SVG Circle
+        const radius = 154; // (Container width 320 / 2) - (stroke width 12 / 2)
+        const svgSize = 320;
+        zen.progressRing.r.baseVal.value = radius;
+        zen.progressBg.r.baseVal.value = radius;
+        zen.progressRing.setAttribute('cx', svgSize / 2);
+        zen.progressRing.setAttribute('cy', svgSize / 2);
+        zen.progressBg.setAttribute('cx', svgSize / 2);
+        zen.progressBg.setAttribute('cy', svgSize / 2);
+        const circumference = 2 * Math.PI * radius;
+        zen.progressRing.style.strokeDasharray = `${circumference}`;
+        zen.progressRing.style.strokeDashoffset = `${circumference}`;
+        zen.progressRing.style.stroke = state.zenSettings.color;
+
+        let duration, statusText;
+        switch(cycleType) {
+            case 'shortBreak': duration = state.zenSettings.shortBreak * 60; statusText = 'DESCANSO CORTO'; break;
+            case 'longBreak': duration = state.zenSettings.longBreak * 60; statusText = 'DESCANSO LARGO'; break;
+            default: duration = state.zenSettings.pomodoro * 60; statusText = 'ENFOQUE';
+        }
+        zen.statusText.textContent = statusText;
+        let timeLeft = duration;
+
+        zenState.timerId = setInterval(async () => {
+            timeLeft--;
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            zen.timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            const progress = (duration - timeLeft) / duration;
+            updateZenCircle(progress);
+            updateBorderClock(progress);
+
+            if (timeLeft <= 0) {
+                clearInterval(zenState.timerId);
+                if (cycleType === 'pomodoro') {
+                    state.gamification.pomodoroCount++;
+                    await updateStreak();
+                    await dataService.saveData(state);
+                    if (state.currentZenTaskId) showZenLogConfirmation();
+                    const newCycleCount = cycleCount + 1;
+                    startZenMode((newCycleCount % 4 === 0) ? 'longBreak' : 'shortBreak', newCycleCount);
+                } else {
+                    startZenMode('pomodoro', cycleCount);
+                }
+            }
+        }, 1000);
+        startParticleAnimation();
+    }
+
+    function stopZenMode() {
+        if (zenState.timerId) clearInterval(zenState.timerId);
+        if (zenState.particleAnimationId) cancelAnimationFrame(zenState.particleAnimationId);
+        views.zen.classList.remove('active');
+        updateZenCircle(0);
+        updateBorderClock(0);
+        state.currentZenTaskId = null;
+        if (zenState.currentSound) {
+            zenState.currentSound.pause();
+            zenState.currentSound.currentTime = 0;
+            zenState.currentSound = null;
+        }
+    }
+
+    function showZenLogConfirmation() {
+        const task = state.tasks.find(t => t.id === state.currentZenTaskId);
+        if (!task) return;
+        zen.confirmLogContent.innerHTML = `<h2 class="font-heading text-2xl uppercase mb-4">Sesión Completada</h2><p class="mb-6 text-secondary">¿Registrar ${state.zenSettings.pomodoro} min en la tarea "${task.title}"?</p><div class="flex gap-4"><button id="confirm-log-yes" class="flex-1 btn btn-primary">Sí</button><button id="confirm-log-no" class="flex-1 btn">No</button></div>`;
+        zen.confirmLogModal.classList.add('active');
+        document.getElementById('confirm-log-yes').onclick = async () => {
+            if (!task.zenSessions) task.zenSessions = [];
+            task.zenSessions.push({ date: new Date().toISOString(), duration: state.zenSettings.pomodoro });
+            await dataService.saveData(state);
+            zen.confirmLogModal.classList.remove('active');
+            state.currentZenTaskId = null;
+        };
+        document.getElementById('confirm-log-no').onclick = () => {
+            zen.confirmLogModal.classList.remove('active');
+            state.currentZenTaskId = null;
+        };
+    }
+
+    function startParticleAnimation() {
+        const ctx = zen.canvas.getContext('2d');
+        let particles = [];
+        zen.canvas.width = window.innerWidth;
+        zen.canvas.height = window.innerHeight;
+        class Particle {
+            constructor() {
+                this.angle = Math.random() * Math.PI * 2;
+                this.radius = 160; // Start at the edge of the timer
+                this.speed = Math.random() * 0.5 + 0.1;
+                this.size = Math.random() * 2 + 1;
+                this.color = state.zenSettings.color;
+            }
+            update(pulse) {
+                this.radius += this.speed;
+                const pulseEffect = this.radius * (0.15 * pulse);
+                this.x = zen.canvas.width / 2 + Math.cos(this.angle) * (this.radius + pulseEffect);
+                this.y = zen.canvas.height / 2 + Math.sin(this.angle) * (this.radius + pulseEffect);
+            }
+            draw() {
+                ctx.globalAlpha = 1 - (this.radius / (zen.canvas.width / 1.5)); // Fade out further away
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+        for (let i = 0; i < 200; i++) particles.push(new Particle());
+        function animate() {
+            ctx.clearRect(0, 0, zen.canvas.width, zen.canvas.height);
+            const pulse = (1 + Math.sin(Date.now() / 800)) / 2;
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update(pulse);
+                particles[i].draw();
+                if (particles[i].radius > zen.canvas.width / 2) {
+                    particles.splice(i, 1, new Particle());
+                }
+            }
+            zenState.particleAnimationId = requestAnimationFrame(animate);
+        }
+        animate();
+    }
+
+    function renderZenSoundControls() {
+        zen.soundSelector.innerHTML = sounds.map(s => `<button data-sound-id="${s.id}" class="sound-select-btn w-full text-left p-2 rounded-lg hover:bg-white/10 transition-colors">${s.name}</button>`).join('');
+        zen.soundSelector.querySelectorAll('.sound-select-btn').forEach(btn => btn.addEventListener('click', () => {
+            const sound = sounds.find(s => s.id === btn.dataset.soundId);
+            if (zenState.currentSound === sound.element) {
+                zenState.currentSound.pause();
+                zenState.currentSound = null;
+                btn.classList.remove('active');
+            } else {
+                sounds.forEach(s => s.element.pause());
+                zenState.currentSound = sound.element;
+                zenState.currentSound.volume = zen.volumeSlider.value;
+                zenState.currentSound.play();
+                document.querySelectorAll('.sound-select-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            }
+        }));
+    }
 
     // --- EVENT HANDLERS ---
     formElements.setupForm.addEventListener('submit', async (e) => { e.preventDefault(); const name = inputs.username.value.trim(); if(name){ state.userName = name; await dataService.saveData(state); views.setup.style.display = 'none'; mainAppUI.style.display = 'block'; renderDashboard(); navigateTo('dashboard'); } });
@@ -130,6 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
     zen.longBreakDurationInput.addEventListener('change', async (e) => { state.zenSettings.longBreak = parseInt(e.target.value); await dataService.saveData(state); });
     zen.colorSelector.querySelectorAll('button').forEach(btn => btn.addEventListener('click', async () => { state.zenSettings.color = btn.dataset.color; applyAppearance(); renderSettings(); await dataService.saveData(state); }));
     zen.volumeSlider.addEventListener('input', e => { if (zenState.currentSound) zenState.currentSound.volume = e.target.value; });
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
 
     // --- INICIALIZACIÓN ---
     async function init() {
