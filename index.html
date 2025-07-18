@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fluir - Versión Final</title>
+    <title>FOCO - Versión Final</title>
     
     <!-- Metadatos para PWA -->
     <link rel="manifest" href="manifest.json">
@@ -24,7 +24,7 @@
     <!-- Vista de Configuración Inicial -->
     <section id="setup-view">
         <div class="w-full max-w-xl text-center">
-            <h1 class="font-heading text-4xl md:text-6xl uppercase mb-4 text-white">¡Bienvenido/a a Fluir!</h1>
+            <h1 class="font-heading text-4xl md:text-6xl uppercase mb-4 text-white">¡Bienvenido/a a FOCO by VitreumStudios!</h1>
             <p class="text-lg md:text-xl mb-12 max-w-2xl mx-auto text-secondary">Para empezar, dinos cómo te llamas.</p>
             <form id="setup-form" class="w-full max-w-sm mx-auto">
                 <input type="text" id="username-input" class="input-field text-center text-2xl mb-8" placeholder="Escribe tu nombre aquí..." required>
@@ -37,7 +37,7 @@
     <div id="main-app-ui" class="w-full h-full" style="display: none;">
         <!-- Navegación de Escritorio -->
         <header id="desktop-header" class="hidden md:flex glass-pane items-center justify-between">
-            <h1 class="font-heading text-2xl uppercase pl-4">Fluir</h1>
+            <h1 class="font-heading text-2xl uppercase pl-4">FOCO</h1>
             <div id="desktop-nav-links" class="flex items-center gap-1 font-semibold text-base">
                 <button id="desktop-dashboard-btn" class="desktop-nav-btn px-3 py-2 rounded-lg">Inicio</button>
                 <button id="desktop-schedule-btn" class="desktop-nav-btn px-3 py-2 rounded-lg">Horario</button>
@@ -75,6 +75,7 @@
                 </div>
                 <div id="focus-card-section"><h2 class="font-heading text-2xl uppercase mb-4 ml-2 text-on-bg">Enfoque Principal</h2><div id="focus-card-container"></div></div>
                 <div id="pending-tasks-section"><div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 ml-2 gap-4"><h2 class="font-heading text-2xl uppercase text-on-bg">Próximas Tareas</h2><div id="task-filters" class="flex items-center gap-2 flex-wrap"></div></div><div id="pending-tasks-container" class="space-y-4"></div></div>
+                <div id="completed-tasks-section" class="mt-10"><h2 class="font-heading text-2xl uppercase mb-4 ml-2 text-on-bg">Tareas Completadas</h2><div id="completed-tasks-container" class="space-y-4"></div></div>
             </section>
 
             <!-- Vista: Detalles de Tarea -->
@@ -93,7 +94,7 @@
             <section id="calendar-view" class="view"><div class="glass-pane p-6 max-w-5xl mx-auto"><header class="flex justify-between items-center mb-6"><h1 id="calendar-title" class="font-heading text-2xl md:text-3xl uppercase"></h1><div class="flex items-center gap-2"><button id="calendar-prev-month-btn" class="btn btn-icon"><</button><button id="calendar-next-month-btn" class="btn btn-icon">></button></div></header><div id="calendar-grid" class="mb-4"></div><div id="calendar-tasks-list"><h3 class="font-heading text-xl uppercase mb-2">Tareas del día:</h3><div id="calendar-tasks-container" class="space-y-2"><p class="text-secondary">Selecciona un día para ver las tareas.</p></div></div></div></section>
             
             <!-- Vista: Ajustes -->
-            <section id="settings-view" class="view"><div class="glass-pane p-6 max-w-4xl mx-auto space-y-12"><h1 class="font-heading text-3xl uppercase">Configuración</h1><div id="zen-settings-section"><h2 class="font-heading text-2xl uppercase mb-4">Modo Zen</h2><div class="space-y-4"><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div><label for="zen-pomodoro-duration" class="font-bold block mb-2">Enfoque (min)</label><input type="number" id="zen-pomodoro-duration" class="input-field" min="1"></div><div><label for="zen-short-break-duration" class="font-bold block mb-2">Descanso Corto (min)</label><input type="number" id="zen-short-break-duration" class="input-field" min="1"></div><div><label for="zen-long-break-duration" class="font-bold block mb-2">Descanso Largo (min)</label><input type="number" id="zen-long-break-duration" class="input-field" min="1"></div></div><div><label class="font-bold block mb-2 mt-4">Color de Acento</label><div id="zen-color-selector" class="flex gap-4"><button class="w-10 h-10 rounded-full transition-transform hover:scale-110" style="background-color: #00F0FF;" data-color="#00F0FF"></button><button class="w-10 h-10 rounded-full transition-transform hover:scale-110" style="background-color: #FF00FF;" data-color="#FF00FF"></button><button class="w-10 h-10 rounded-full transition-transform hover:scale-110" style="background-color: #00FF7F;" data-color="#00FF7F"></button><button class="w-10 h-10 rounded-full transition-transform hover:scale-110" style="background-color: #FFFF00;" data-color="#FFFF00"></button></div></div></div></div><div id="appearance-section"><h2 class="font-heading text-2xl uppercase mb-4">Apariencia</h2><div class="space-y-4"><div><label for="wallpaper-url-input" class="font-bold block mb-2">Fondo desde URL</label><div class="flex gap-2"><input type="text" id="wallpaper-url-input" class="input-field flex-1" placeholder="https://..."><button id="save-wallpaper-url-btn" class="btn">Guardar</button></div></div><div><label for="wallpaper-file-input" class="font-bold block mb-2">Fondo desde archivo</label><input type="file" id="wallpaper-file-input" accept="image/*" class="input-field"></div><button id="reset-wallpaper-btn" class="w-full md:w-auto btn">Restaurar fondo</button></div></div><div><h2 class="font-heading text-2xl uppercase mb-4">Copia de Seguridad</h2><div class="flex flex-col md:flex-row gap-4"><button id="export-btn" class="flex-1 btn">Exportar</button><button id="import-btn" class="flex-1 btn">Importar</button></div><input type="file" id="import-file-input" accept=".flu,.json" class="hidden"></div><div><h2 class="font-heading text-2xl uppercase mb-4" style="color: var(--danger-color);">Zona de Peligro</h2><button id="reset-app-btn" class="w-full btn btn-danger font-bold text-lg">Reiniciar Aplicación</button></div></div></section>
+            <section id="settings-view" class="view"><div class="glass-pane p-6 max-w-4xl mx-auto space-y-12"><h1 class="font-heading text-3xl uppercase">Configuración</h1><div id="zen-settings-section"><h2 class="font-heading text-2xl uppercase mb-4">Modo Zen</h2><div class="space-y-4"><div class="grid grid-cols-1 md:grid-cols-3 gap-4"><div><label for="zen-pomodoro-duration" class="font-bold block mb-2">Enfoque (min)</label><input type="number" id="zen-pomodoro-duration" class="input-field" min="1"></div><div><label for="zen-short-break-duration" class="font-bold block mb-2">Descanso Corto (min)</label><input type="number" id="zen-short-break-duration" class="input-field" min="1"></div><div><label for="zen-long-break-duration" class="font-bold block mb-2">Descanso Largo (min)</label><input type="number" id="zen-long-break-duration" class="input-field" min="1"></div></div></div></div><div id="appearance-section"><h2 class="font-heading text-2xl uppercase mb-4">Apariencia</h2><div class="space-y-4"><div><label for="color-picker" class="font-bold block mb-2">Color de Acento</label><input type="color" id="color-picker" class="input-field h-12"></div><div><label for="wallpaper-url-input" class="font-bold block mb-2">Fondo desde URL</label><div class="flex gap-2"><input type="text" id="wallpaper-url-input" class="input-field flex-1" placeholder="https://..."><button id="save-wallpaper-url-btn" class="btn">Guardar</button></div></div><div><label for="wallpaper-file-input" class="font-bold block mb-2">Fondo desde archivo</label><input type="file" id="wallpaper-file-input" accept="image/*" class="input-field"></div><button id="reset-wallpaper-btn" class="w-full md:w-auto btn">Restaurar fondo</button></div></div><div><h2 class="font-heading text-2xl uppercase mb-4">Copia de Seguridad</h2><div class="flex flex-col md:flex-row gap-4"><button id="export-btn" class="flex-1 btn">Exportar</button><button id="import-btn" class="flex-1 btn">Importar</button></div><input type="file" id="import-file-input" accept=".foco,.json" class="hidden"></div><div><h2 class="font-heading text-2xl uppercase mb-4" style="color: var(--danger-color);">Zona de Peligro</h2><button id="reset-app-btn" class="w-full btn btn-danger font-bold text-lg">Reiniciar Aplicación</button></div></div></section>
         </main>
         
         <!-- Navegación Móvil -->

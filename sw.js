@@ -1,5 +1,5 @@
 // Define un nombre y una versión para tu caché
-const CACHE_NAME = 'fluir-cache-v1.0';
+const CACHE_NAME = 'foco-cache-v1.0';
 
 // Lista de archivos y recursos esenciales para que la app funcione sin conexión
 const urlsToCache = [
