@@ -73,6 +73,10 @@
                         </button>
                     </div>
                 </div>
+                <div id="todays-schedule-section">
+                    <h2 class="font-heading text-2xl uppercase mb-4 ml-2 text-on-bg">Clases de Hoy</h2>
+                    <div id="todays-schedule-container" class="space-y-4"></div>
+                </div>
                 <div id="focus-card-section"><h2 class="font-heading text-2xl uppercase mb-4 ml-2 text-on-bg">Enfoque Principal</h2><div id="focus-card-container"></div></div>
                 <div id="pending-tasks-section"><div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 ml-2 gap-4"><h2 class="font-heading text-2xl uppercase text-on-bg">Próximas Tareas</h2><div id="task-filters" class="flex items-center gap-2 flex-wrap"></div></div><div id="pending-tasks-container" class="space-y-4"></div></div>
                 <div id="completed-tasks-section" class="mt-10"><h2 class="font-heading text-2xl uppercase mb-4 ml-2 text-on-bg">Tareas Completadas</h2><div id="completed-tasks-container" class="space-y-4"></div></div>
@@ -85,10 +89,73 @@
             <section id="form-view" class="view"><div class="glass-pane p-6 max-w-3xl mx-auto"><header class="flex justify-between items-center mb-6"><h1 id="form-title" class="font-heading text-3xl md:text-4xl uppercase"></h1><button id="cancel-form-btn" class="btn">Cancelar</button></header><form id="task-form" class="space-y-6"><input type="hidden" id="task-id-input"><div><label for="task-title" class="font-bold block mb-2">Título *</label><input type="text" id="task-title" class="input-field" required></div><div><label for="task-description" class="font-bold block mb-2">Descripción</label><textarea id="task-description" rows="4" class="input-field"></textarea></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label for="task-due-date" class="font-bold block mb-2">Fecha</label><input type="datetime-local" id="task-due-date" class="input-field"></div><div><label for="task-priority" class="font-bold block mb-2">Prioridad</label><select id="task-priority" class="input-field"><option value="low">Baja</option><option value="medium" selected>Media</option><option value="high">Alta</option></select></div></div><div><label for="task-tags" class="font-bold block mb-2">Etiquetas</label><input type="text" id="task-tags" class="input-field" placeholder="#universidad, #personal..."></div><div><h3 class="font-bold mb-2">Subtareas</h3><div id="subtasks-form-list" class="space-y-2 mb-3"></div><button type="button" id="add-subtask-form-btn" class="btn text-sm">+ Añadir subtarea</button></div><button type="submit" id="save-task-btn" class="w-full btn btn-primary text-xl"></button></form></div></section>
             
             <!-- Vista: Horario -->
-            <section id="schedule-view" class="view"><div class="glass-pane p-6 max-w-4xl mx-auto"><header class="flex justify-between items-center mb-8"><h1 class="font-heading text-3xl md:text-4xl uppercase">Horario Semanal</h1><button id="add-subject-btn" class="btn btn-primary flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Añadir Materia</button></header><div id="schedule-list-container" class="space-y-8"></div></div></section>
-            
-            <!-- Vista: Formulario de Materia -->
-            <section id="subject-form-view" class="view"><div class="glass-pane p-6 max-w-3xl mx-auto"><header class="flex justify-between items-center mb-6"><h1 id="subject-form-title" class="font-heading text-3xl md:text-4xl uppercase"></h1><button id="cancel-subject-form-btn" class="btn">Cancelar</button></header><form id="subject-form" class="space-y-6"><input type="hidden" id="subject-id-input"><div><label for="subject-name" class="font-bold block mb-2">Nombre Materia *</label><input type="text" id="subject-name" class="input-field" required></div><div><label for="subject-day" class="font-bold block mb-2">Día *</label><select id="subject-day" class="input-field" required><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="0">Domingo</option></select></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label for="subject-start-time" class="font-bold block mb-2">Hora Inicio *</label><input type="time" id="subject-start-time" class="input-field" required></div><div><label for="subject-end-time" class="font-bold block mb-2">Hora Fin *</label><input type="time" id="subject-end-time" class="input-field" required></div></div><button type="submit" id="save-subject-btn" class="w-full btn btn-primary text-xl"></button></form></div></section>
+            <section id="schedule-view" class="view">
+                <div class="glass-pane p-6 max-w-4xl mx-auto">
+                    <!-- Contenedor para la lista de materias -->
+                    <div id="schedule-display">
+                        <header class="flex justify-between items-center mb-8">
+                            <h1 class="font-heading text-3xl md:text-4xl uppercase">Horario Semanal</h1>
+                            <button id="add-subject-btn" class="btn btn-primary flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                Añadir Materia
+                            </button>
+                        </header>
+                        <div id="schedule-list-container" class="space-y-8"></div>
+                    </div>
+
+                    <!-- Contenedor para el formulario de materias (oculto por defecto) -->
+                    <div id="subject-form-container" style="display: none;">
+                        <header class="flex justify-between items-center mb-6">
+                            <h1 id="subject-form-title" class="font-heading text-3xl md:text-4xl uppercase"></h1>
+                            <button id="cancel-subject-form-btn" class="btn">Cancelar</button>
+                        </header>
+                        <form id="subject-form" class="space-y-6">
+                            <input type="hidden" id="subject-id-input">
+                            <div><label for="subject-name" class="font-bold block mb-2">Nombre Materia *</label><input type="text" id="subject-name" class="input-field" required></div>
+                            <div>
+                                <label for="subject-day" class="font-bold block mb-2">Día *</label>
+                                <select id="subject-day" class="input-field" required>
+                                    <option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="0">Domingo</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div><label for="subject-start-time" class="font-bold block mb-2">Hora Inicio *</label><input type="time" id="subject-start-time" class="input-field" required></div>
+                                <div><label for="subject-end-time" class="font-bold block mb-2">Hora Fin *</label><input type="time" id="subject-end-time" class="input-field" required></div>
+                            </div>
+                            <button type="submit" id="save-subject-btn" class="w-full btn btn-primary text-xl"></button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Vista: Calificaciones -->
+            <section id="grades-view" class="view">
+                <div class="glass-pane p-6 max-w-4xl mx-auto">
+                    <header class="flex justify-between items-center mb-6 pb-4 border-b-2 border-white/20 flex-wrap gap-2">
+                        <button id="back-to-schedule-btn" class="btn flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                            Volver al Horario
+                        </button>
+                        <div class="flex gap-2">
+                            <button id="edit-subject-grades-btn" class="btn flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                Editar Materia
+                            </button>
+                        </div>
+                    </header>
+                    <div id="grades-content" class="space-y-8">
+                        <div class="text-center">
+                            <h1 id="grades-subject-title" class="font-heading text-3xl md:text-5xl uppercase mb-2"></h1>
+                            <p id="grades-average" class="text-2xl font-bold text-secondary"></p>
+                        </div>
+                        <div id="grades-list-container" class="space-y-4"></div>
+                        <button id="add-grade-btn" class="btn btn-primary w-full text-xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="inline-block mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            Añadir Calificación
+                        </button>
+                    </div>
+                </div>
+            </section>
             
             <!-- Vista: Calendario -->
             <section id="calendar-view" class="view"><div class="glass-pane p-6 max-w-5xl mx-auto"><header class="flex justify-between items-center mb-6"><h1 id="calendar-title" class="font-heading text-2xl md:text-3xl uppercase"></h1><div class="flex items-center gap-2"><button id="calendar-prev-month-btn" class="btn btn-icon"><</button><button id="calendar-next-month-btn" class="btn btn-icon">></button></div></header><div id="calendar-grid" class="mb-4"></div><div id="calendar-tasks-list"><h3 class="font-heading text-xl uppercase mb-2">Tareas del día:</h3><div id="calendar-tasks-container" class="space-y-2"><p class="text-secondary">Selecciona un día para ver las tareas.</p></div></div></div></section>
@@ -145,6 +212,25 @@
     <div id="subtask-modal" class="modal-overlay"><div class="modal-content glass-pane w-11/12 max-w-md p-6"><h2 class="font-heading text-2xl uppercase mb-4">Añadir Subtarea</h2><input type="text" id="subtask-input" class="input-field mb-4" placeholder="Descripción..."><div class="flex gap-4"><button id="confirm-add-subtask-btn" class="flex-1 btn btn-primary">Añadir</button><button id="cancel-add-subtask-btn" class="flex-1 btn">Cancelar</button></div></div></div>
     <div id="confirm-zen-log-modal" class="modal-overlay"><div id="confirm-zen-log-content" class="modal-content glass-pane w-11/12 max-w-md p-6 text-center"></div></div>
     <div id="achievement-toast" class="glass-pane"><div id="achievement-toast-content" class="flex items-center gap-4 text-primary"></div></div>
+    <div id="add-grade-modal" class="modal-overlay">
+        <div class="modal-content glass-pane w-11/12 max-w-md p-6">
+            <h2 class="font-heading text-2xl uppercase mb-4">Añadir Calificación</h2>
+            <form id="add-grade-form" class="space-y-4">
+                <div>
+                    <label for="grade-name-input" class="font-bold block mb-2">Descripción</label>
+                    <input type="text" id="grade-name-input" class="input-field" placeholder="Ej: Examen Parcial 1" required>
+                </div>
+                <div>
+                    <label for="grade-value-input" class="font-bold block mb-2">Calificación</label>
+                    <input type="number" id="grade-value-input" class="input-field" placeholder="Ej: 8.5" step="0.1" required>
+                </div>
+                <div class="flex gap-4 mt-6">
+                    <button type="submit" class="flex-1 btn btn-primary">Añadir</button>
+                    <button type="button" id="cancel-add-grade-btn" class="flex-1 btn">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Script Principal de la App -->
     <script src="script.js" defer></script>

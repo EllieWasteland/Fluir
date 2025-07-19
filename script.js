@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- SELECTORES ---
     const mainAppUI = document.getElementById('main-app-ui');
-    const views = { setup: document.getElementById('setup-view'), dashboard: document.getElementById('dashboard-view'), details: document.getElementById('details-view'), form: document.getElementById('form-view'), settings: document.getElementById('settings-view'), zen: document.getElementById('zen-view'), schedule: document.getElementById('schedule-view'), subjectForm: document.getElementById('subject-form-view'), calendar: document.getElementById('calendar-view') };
+    const views = { setup: document.getElementById('setup-view'), dashboard: document.getElementById('dashboard-view'), details: document.getElementById('details-view'), form: document.getElementById('form-view'), settings: document.getElementById('settings-view'), zen: document.getElementById('zen-view'), schedule: document.getElementById('schedule-view'), calendar: document.getElementById('calendar-view'), grades: document.getElementById('grades-view') };
     const buttons = {
         backToDashboard: document.getElementById('back-to-dashboard-btn'), editTask: document.getElementById('edit-task-btn'), cancelForm: document.getElementById('cancel-form-btn'), saveTask: document.getElementById('save-task-btn'),
         exportData: document.getElementById('export-btn'), importData: document.getElementById('import-btn'), resetApp: document.getElementById('reset-app-btn'),
@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
         dashboardZen: document.getElementById('dashboard-zen-btn'), // Botón Zen del Dashboard
         addSubject: document.getElementById('add-subject-btn'), cancelSubjectForm: document.getElementById('cancel-subject-form-btn'), saveSubject: document.getElementById('save-subject-btn'),
         calendarPrevMonth: document.getElementById('calendar-prev-month-btn'), calendarNextMonth: document.getElementById('calendar-next-month-btn'),
+        backToSchedule: document.getElementById('back-to-schedule-btn'), editSubjectGrades: document.getElementById('edit-subject-grades-btn'), addGrade: document.getElementById('add-grade-btn'),
+        cancelAddGrade: document.getElementById('cancel-add-grade-btn'),
     };
     const inputs = { username: document.getElementById('username-input'), importFile: document.getElementById('import-file-input'), wallpaperUrl: document.getElementById('wallpaper-url-input'), wallpaperFile: document.getElementById('wallpaper-file-input'), colorPicker: document.getElementById('color-picker') };
     const containers = {
@@ -19,14 +21,21 @@ document.addEventListener('DOMContentLoaded', () => {
         greetingText: document.getElementById('greeting-text'), dashboardSummary: document.getElementById('dashboard-summary'), motivationalQuote: document.getElementById('motivational-quote'),
         focusCard: document.getElementById('focus-card-container'), taskFilters: document.getElementById('task-filters'), streak: document.getElementById('streak-text'),
         scheduleList: document.getElementById('schedule-list-container'), calendarGrid: document.getElementById('calendar-grid'), calendarTitle: document.getElementById('calendar-title'), calendarTasks: document.getElementById('calendar-tasks-container'),
+        scheduleDisplay: document.getElementById('schedule-display'), subjectFormContainer: document.getElementById('subject-form-container'),
+        gradesSubjectTitle: document.getElementById('grades-subject-title'), gradesAverage: document.getElementById('grades-average'), gradesList: document.getElementById('grades-list-container'),
+        todaysSchedule: document.getElementById('todays-schedule-container'),
     };
     const formElements = {
         setupForm: document.getElementById('setup-form'), form: document.getElementById('task-form'), formTitle: document.getElementById('form-title'), taskIdInput: document.getElementById('task-id-input'), title: document.getElementById('task-title'),
         description: document.getElementById('task-description'), dueDate: document.getElementById('task-due-date'), priority: document.getElementById('task-priority'), tags: document.getElementById('task-tags'),
         subjectForm: document.getElementById('subject-form'), subjectFormTitle: document.getElementById('subject-form-title'), subjectIdInput: document.getElementById('subject-id-input'),
         subjectName: document.getElementById('subject-name'), subjectDay: document.getElementById('subject-day'), subjectStartTime: document.getElementById('subject-start-time'), subjectEndTime: document.getElementById('subject-end-time'),
+        addGradeForm: document.getElementById('add-grade-form'), gradeNameInput: document.getElementById('grade-name-input'), gradeValueInput: document.getElementById('grade-value-input'),
     };
-    const modal = { element: document.getElementById('subtask-modal'), input: document.getElementById('subtask-input'), confirmBtn: document.getElementById('confirm-add-subtask-btn'), cancelBtn: document.getElementById('cancel-add-subtask-btn'), addBtnForm: document.getElementById('add-subtask-form-btn') };
+    const modal = { 
+        subtask: { element: document.getElementById('subtask-modal'), input: document.getElementById('subtask-input'), confirmBtn: document.getElementById('confirm-add-subtask-btn'), cancelBtn: document.getElementById('cancel-add-subtask-btn'), addBtnForm: document.getElementById('add-subtask-form-btn') },
+        grade: { element: document.getElementById('add-grade-modal') }
+    };
     const zen = {
         timerDisplay: document.getElementById('zen-timer-display'), statusText: document.getElementById('zen-status-text'), canvas: document.getElementById('zen-canvas'),
         progressRing: document.getElementById('zen-progress-ring'), progressBg: document.getElementById('zen-progress-bg'),
@@ -39,10 +48,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- ESTADO Y LÓGICA DE DATOS ---
     const motivationalQuotes = [ "El secreto para salir adelante es empezar.", "La disciplina es el puente entre las metas y los logros.", "No mires el reloj; haz lo que él hace. Sigue moviéndote." ];
-    const sounds = [ { id: 'rain', name: 'Lluvia Ligera', element: document.getElementById('audio-rain') }, { id: 'forest', name: 'Bosque', element: document.getElementById('audio-forest') }, { id: 'whitenoise', name: 'Ruido Blanco', element: document.getElementById('audio-whitenoise') } ];
+    const sounds = [ { id: 'rain', name: 'Lluvia Ligera', element: document.getElementById('audio-rain') }, { id: 'forest', name: 'Bosque', element: document.getElementById('audio-whitenoise') }, { id: 'whitenoise', name: 'Ruido Blanco', element: document.getElementById('audio-whitenoise') } ];
     const getDefaultState = () => ({ userName: null, tasks: [], schedule: [], currentView: 'dashboard', selectedTaskId: null, selectedSubjectId: null, tempSubtasks: [], calendarDate: new Date().toISOString(), wallpaper: null, filters: { priority: 'all', tag: 'all' }, zenSettings: { pomodoro: 25, shortBreak: 5, longBreak: 15, color: '#00F0FF' }, gamification: { streak: 0, lastCompletionDate: null, achievements: [], pomodoroCount: 0 }, currentZenTaskId: null });
     let state = getDefaultState();
-    let countdownInterval = null, taskObserver = null;
+    let countdownInterval = null;
     let zenState = { timerId: null, particleAnimationId: null, currentSound: null };
     const dataService = {
         async getData() { return new Promise(resolve => { const d = localStorage.getItem('foco-app-data-v1'); resolve(d ? { ...getDefaultState(), ...JSON.parse(d) } : getDefaultState()); }); },
@@ -94,8 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- NAVEGACIÓN Y RENDERIZADO ---
     function navigateTo(viewName) {
-        if (countdownInterval) clearInterval(countdownInterval);
-        if (taskObserver) taskObserver.disconnect();
+        if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
         
         if (state.currentView === 'zen' && viewName !== 'zen') {
             stopZenMode();
@@ -119,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (viewName === 'settings') renderSettings();
                 if (viewName === 'schedule') renderSchedule();
                 if (viewName === 'calendar') renderCalendar();
+                if (viewName === 'grades') renderGrades();
                 if (viewName === 'zen') {
                     enterFullscreen(document.documentElement);
                     startZenMode();
@@ -127,28 +136,181 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     function updateNavActiveState(activeView) { document.querySelectorAll('.desktop-nav-btn, .mobile-nav-btn').forEach(btn => btn.classList.remove('active')); const desktopBtn = document.getElementById(`desktop-${activeView}-btn`); if(desktopBtn) desktopBtn.classList.add('active'); const mobileBtn = document.getElementById(`mobile-${activeView}-btn`); if(mobileBtn) mobileBtn.classList.add('active'); }
-    function updateCountdownTimers() { document.querySelectorAll('.countdown-timer.is-visible').forEach(timer => { const diff = new Date(timer.dataset.dueDate) - new Date(); if (diff <= 0) { timer.innerHTML = `<span style="color: var(--danger-color);" class="font-bold">Vencido</span>`; return; } const d = Math.floor(diff / 864e5), h = Math.floor((diff % 864e5) / 36e5), m = Math.floor((diff % 36e5) / 6e4), s = Math.floor((diff % 6e4) / 1e3); timer.textContent = `${d > 0 ? d + 'd ' : ''}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`; }); }
+    function updateCountdownTimers() { 
+        document.querySelectorAll('.task-countdown').forEach(timer => {
+            if (!timer.dataset.dueDate) return;
+            const diff = new Date(timer.dataset.dueDate) - new Date();
+            if (diff <= 0) {
+                timer.innerHTML = `<span style="color: var(--danger-color);" class="font-bold">Vencido</span>`;
+                return;
+            }
+            const d = Math.floor(diff / 864e5),
+                  h = Math.floor((diff % 864e5) / 36e5),
+                  m = Math.floor((diff % 36e5) / 6e4),
+                  s = Math.floor((diff % 6e4) / 1e3);
+            timer.textContent = `Faltan: ${d > 0 ? d + 'd ' : ''}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        });
+        document.querySelectorAll('.schedule-countdown').forEach(timer => {
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            const startTime = new Date(`${todayStr}T${timer.dataset.startTime}`);
+            const endTime = new Date(`${todayStr}T${timer.dataset.endTime}`);
+            
+            let diff, prefix;
+
+            if (now < startTime) {
+                diff = startTime - now;
+                prefix = 'Empieza en';
+                timer.style.color = 'var(--text-secondary)';
+            } else if (now >= startTime && now <= endTime) {
+                diff = endTime - now;
+                prefix = 'Finaliza en';
+                timer.style.color = 'var(--accent-primary)';
+            } else {
+                timer.textContent = 'Finalizada';
+                timer.style.color = 'var(--danger-color)';
+                return;
+            }
+
+            const h = Math.floor((diff % 864e5) / 36e5),
+                  m = Math.floor((diff % 36e5) / 6e4),
+                  s = Math.floor((diff % 6e4) / 1e3);
+            timer.textContent = `${prefix} ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        });
+    }
     function startCountdownTimers() { if (!countdownInterval) { updateCountdownTimers(); countdownInterval = setInterval(updateCountdownTimers, 1000); } }
-    function setupTaskObserver() { if (taskObserver) taskObserver.disconnect(); taskObserver = new IntersectionObserver((entries) => { entries.forEach(entry => { const timer = entry.target.querySelector('.countdown-timer'); if (timer) entry.isIntersecting ? timer.classList.add('is-visible') : timer.classList.remove('is-visible'); }); }, { threshold: 0.1 }); document.querySelectorAll('.task-card').forEach(card => taskObserver.observe(card)); }
     function createProgressCircle(percentage, size = 40) { const sW = size / 10, r = (size / 2) - (sW / 2), c = 2 * Math.PI * r, o = c - (percentage / 100) * c; return `<svg style="width:${size}px; height:${size}px;" viewBox="0 0 ${size} ${size}"><circle stroke-width="${sW}" stroke="rgba(255,255,255,0.3)" fill="transparent" r="${r}" cx="${size/2}" cy="${size/2}"/><circle stroke-width="${sW}" stroke-dasharray="${c}" stroke-dashoffset="${o}" stroke-linecap="round" stroke="var(--text-primary)" fill="transparent" r="${r}" cx="${size/2}" cy="${size/2}" style="transition: stroke-dashoffset 0.5s ease; transform: rotate(-90deg); transform-origin: center;"/><text x="50%" y="50%" text-anchor="middle" dy=".3em" class="font-bold" style="fill: var(--text-primary); font-size: ${size / 4.5}px;">${Math.round(percentage)}%</text></svg>`; }
-    function createTaskCard(task) { let progress = 0, statusText = ''; if (task.subtasks.length > 0) { const completed = task.subtasks.filter(st => st.completed).length; progress = (completed / task.subtasks.length) * 100; statusText = `${completed}/${task.subtasks.length}`; } else { progress = task.completed ? 100 : 0; statusText = task.completed ? '¡Hecho!' : 'Simple'; } const card = document.createElement('div'); card.className = `task-card glass-pane p-4 priority-${task.priority}`; card.dataset.taskId = task.id; let timeInfoHTML = ''; if(task.dueDate && !task.completed) { timeInfoHTML = `<p class="text-sm text-secondary">Entrega: ${new Date(task.dueDate).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p><p class="text-sm font-semibold countdown-timer" data-due-date="${task.dueDate}"></p>`; } else { timeInfoHTML = `<p class="text-sm text-secondary">${task.completed ? 'Completado' : 'Sin fecha'}</p>`; } const tagsHTML = !task.completed ? task.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : ''; card.innerHTML = `<div class="flex justify-between items-center"><div class="flex-grow mr-4 min-w-0"><h3 class="font-bold text-lg break-words ${task.completed ? 'line-through text-secondary' : ''}">${task.title}</h3>${timeInfoHTML}<div class="flex gap-2 mt-2 flex-wrap">${tagsHTML}</div></div><div class="flex-shrink-0 flex flex-col items-center justify-center">${createProgressCircle(progress, 60)}<span class="text-xs font-semibold mt-1">${statusText}</span></div></div>`; card.addEventListener('click', () => { state.selectedTaskId = task.id; renderTaskDetails(); navigateTo('details'); }); return card; }
-    function renderDashboard() { containers.greetingText.textContent = `Hola, ${state.userName}!`; const pendingCount = state.tasks.filter(t => !t.completed).length; containers.dashboardSummary.textContent = pendingCount > 0 ? `Tienes ${pendingCount} tarea${pendingCount > 1 ? 's' : ''} pendiente${pendingCount > 1 ? 's' : ''}.` : '¡No tienes tareas pendientes!'; containers.motivationalQuote.textContent = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]; containers.streak.textContent = `${state.gamification.streak} día${state.gamification.streak !== 1 ? 's' : ''}`; renderTaskFilters(); renderFocusCard(); const activeTasks = state.tasks.filter(t => !t.completed).sort((a, b) => (a.dueDate && b.dueDate) ? new Date(a.dueDate) - new Date(b.dueDate) : a.dueDate ? -1 : 1); const completedTasks = state.tasks.filter(t => t.completed).sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt)); const filteredTasks = activeTasks.filter(t => (state.filters.priority === 'all' || t.priority === state.filters.priority) && (state.filters.tag === 'all' || t.tags.includes(state.filters.tag))); containers.pendingTasks.innerHTML = ''; if (filteredTasks.length > 0) { filteredTasks.forEach(task => containers.pendingTasks.appendChild(createTaskCard(task))); } else { containers.pendingTasks.innerHTML = `<div class="glass-pane p-6 text-center col-span-full"><h3 class="font-heading text-xl uppercase">Todo en orden</h3><p class="mt-1 text-sm text-secondary">No hay tareas que coincidan con tus filtros.</p></div>`; } containers.completedTasks.innerHTML = ''; if (completedTasks.length > 0) { completedTasks.forEach(task => containers.completedTasks.appendChild(createTaskCard(task))); } else { containers.completedTasks.innerHTML = `<div class="glass-pane p-6 text-center col-span-full"><h3 class="font-heading text-xl uppercase">Aún no hay nada aquí</h3><p class="mt-1 text-sm text-secondary">Completa algunas tareas para verlas aquí.</p></div>`; } startCountdownTimers(); setupTaskObserver(); }
+    function createTaskCard(task) { let progress = 0, statusText = ''; if (task.subtasks.length > 0) { const completed = task.subtasks.filter(st => st.completed).length; progress = (completed / task.subtasks.length) * 100; statusText = `${completed}/${task.subtasks.length}`; } else { progress = task.completed ? 100 : 0; statusText = task.completed ? '¡Hecho!' : 'Simple'; } const card = document.createElement('div'); card.className = `task-card glass-pane p-4 priority-${task.priority}`; card.dataset.taskId = task.id; let timeInfoHTML = ''; if(task.dueDate && !task.completed) { timeInfoHTML = `<p class="text-sm text-secondary">Entrega: ${new Date(task.dueDate).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p><p class="text-sm font-semibold task-countdown" data-due-date="${task.dueDate}"></p>`; } else { timeInfoHTML = `<p class="text-sm text-secondary">${task.completed ? 'Completado' : 'Sin fecha'}</p>`; } const tagsHTML = !task.completed ? task.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : ''; card.innerHTML = `<div class="flex justify-between items-center"><div class="flex-grow mr-4 min-w-0"><h3 class="font-bold text-lg break-words ${task.completed ? 'line-through text-secondary' : ''}">${task.title}</h3>${timeInfoHTML}<div class="flex gap-2 mt-2 flex-wrap">${tagsHTML}</div></div><div class="flex-shrink-0 flex flex-col items-center justify-center">${createProgressCircle(progress, 60)}<span class="text-xs font-semibold mt-1">${statusText}</span></div></div>`; card.addEventListener('click', () => { state.selectedTaskId = task.id; renderTaskDetails(); navigateTo('details'); }); return card; }
+    function renderDashboard() { containers.greetingText.textContent = `Hola, ${state.userName}!`; const pendingCount = state.tasks.filter(t => !t.completed).length; containers.dashboardSummary.textContent = pendingCount > 0 ? `Tienes ${pendingCount} tarea${pendingCount > 1 ? 's' : ''} pendiente${pendingCount > 1 ? 's' : ''}.` : '¡No tienes tareas pendientes!'; containers.motivationalQuote.textContent = motivationalQuotes[Math.floor(Math.random() * motivationalQuotes.length)]; containers.streak.textContent = `${state.gamification.streak} día${state.gamification.streak !== 1 ? 's' : ''}`; renderTodaysSchedule(); renderTaskFilters(); renderFocusCard(); const activeTasks = state.tasks.filter(t => !t.completed).sort((a, b) => (a.dueDate && b.dueDate) ? new Date(a.dueDate) - new Date(b.dueDate) : a.dueDate ? -1 : 1); const completedTasks = state.tasks.filter(t => t.completed).sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt)); const filteredTasks = activeTasks.filter(t => (state.filters.priority === 'all' || t.priority === state.filters.priority) && (state.filters.tag === 'all' || t.tags.includes(state.filters.tag))); containers.pendingTasks.innerHTML = ''; if (filteredTasks.length > 0) { filteredTasks.forEach(task => containers.pendingTasks.appendChild(createTaskCard(task))); } else { containers.pendingTasks.innerHTML = `<div class="glass-pane p-6 text-center col-span-full"><h3 class="font-heading text-xl uppercase">Todo en orden</h3><p class="mt-1 text-sm text-secondary">No hay tareas que coincidan con tus filtros.</p></div>`; } containers.completedTasks.innerHTML = ''; if (completedTasks.length > 0) { completedTasks.forEach(task => containers.completedTasks.appendChild(createTaskCard(task))); } else { containers.completedTasks.innerHTML = `<div class="glass-pane p-6 text-center col-span-full"><h3 class="font-heading text-xl uppercase">Aún no hay nada aquí</h3><p class="mt-1 text-sm text-secondary">Completa algunas tareas para verlas aquí.</p></div>`; } startCountdownTimers(); }
+    function renderTodaysSchedule() {
+        const today = new Date().getDay();
+        const todaysClasses = state.schedule.filter(s => s.day == today).sort((a, b) => a.startTime.localeCompare(b.startTime));
+        
+        if (todaysClasses.length === 0) {
+            containers.todaysSchedule.innerHTML = `<div class="glass-pane p-6 text-center"><h3 class="font-heading text-xl uppercase">Día Libre</h3><p class="mt-1 text-sm text-secondary">No tienes clases programadas para hoy. ¡Disfruta!</p></div>`;
+        } else {
+            containers.todaysSchedule.innerHTML = todaysClasses.map(subject => `
+                <div class="glass-pane p-4 schedule-card">
+                    <h3 class="font-bold text-lg">${subject.name}</h3>
+                    <p class="text-sm text-secondary">${subject.startTime} - ${subject.endTime}</p>
+                    <p class="text-sm font-semibold schedule-countdown mt-2" data-start-time="${subject.startTime}" data-end-time="${subject.endTime}"></p>
+                </div>
+            `).join('');
+        }
+    }
     function renderFocusCard() { containers.focusCard.innerHTML = ''; const focusTask = state.tasks.filter(t => !t.completed && t.dueDate).sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))[0]; if (focusTask) { const card = createTaskCard(focusTask); card.classList.add('focus-card', 'glass-pane-light'); containers.focusCard.appendChild(card); } else { containers.focusCard.innerHTML = `<div class="glass-pane glass-pane-light p-6 text-center"><h3 class="font-heading text-xl uppercase">Todo tranquilo</h3><p class="mt-1 text-sm text-secondary">No hay tareas urgentes. ¡Disfruta o añade un proyecto!</p></div>`; } }
     function renderTaskFilters() { const allTags = [...new Set(state.tasks.flatMap(t => t.tags))]; containers.taskFilters.innerHTML = `<select id="priority-filter" class="input-field !py-1 !w-auto"><option value="all">Prioridad</option><option value="high">Alta</option><option value="medium">Media</option><option value="low">Baja</option></select><select id="tag-filter" class="input-field !py-1 !w-auto"><option value="all">Etiqueta</option>${allTags.map(tag => `<option value="${tag}">${tag}</option>`).join('')}</select>`; const priorityFilter = document.getElementById('priority-filter'), tagFilter = document.getElementById('tag-filter'); priorityFilter.value = state.filters.priority; tagFilter.value = state.filters.tag; priorityFilter.addEventListener('change', (e) => { state.filters.priority = e.target.value; renderDashboard(); }); tagFilter.addEventListener('change', (e) => { state.filters.tag = e.target.value; renderDashboard(); }); }
     async function renderTaskDetails() { const task = state.tasks.find(t => t.id === state.selectedTaskId); if (!task) return; let progress = 0; if (task.subtasks.length > 0) { const completed = task.subtasks.filter(st => st.completed).length; progress = (completed / task.subtasks.length) * 100; } else { progress = task.completed ? 100 : 0; } let detailsHTML = `<div class="flex flex-col items-center w-full"><div class="mb-6">${createProgressCircle(progress, 120)}</div><h2 class="font-heading text-3xl md:text-5xl uppercase mb-2 text-center break-words ${task.completed ? 'line-through text-secondary' : ''}">${task.title}</h2><div class="text-sm text-secondary mb-2 text-center">Prioridad: <span class="font-bold">${task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span></div>${task.tags.length > 0 && !task.completed ? `<div class="flex gap-2 justify-center flex-wrap mb-6">${task.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}<p class="mb-8 text-center w-full max-w-2xl">${task.description || '<em>Sin descripción.</em>'}</p><div class="w-full border-t-2 border-white/20 pt-6">`; if (task.subtasks.length > 0) { const comp = task.subtasks.filter(st => st.completed).length; const total = task.subtasks.length; const subsHTML = task.subtasks.map(st => `<div class="subtask-item flex items-center gap-4 p-3 border-b-2 border-white/10" draggable="true" data-subtask-id="${st.id}"><span class="drag-handle text-secondary cursor-move">⠿</span><input type="checkbox" id="subtask-${st.id}" data-subtask-id="${st.id}" class="custom-checkbox" ${st.completed ? 'checked' : ''}><label for="subtask-${st.id}" class="flex-1 ${st.completed ? 'line-through text-secondary' : ''}">${st.text}</label></div>`).join(''); detailsHTML += `<h3 class="font-heading text-xl uppercase mb-4">Progreso (${comp}/${total})</h3><div id="subtasks-details-list">${subsHTML}</div><button id="add-subtask-details-btn" class="mt-4 btn text-sm">+ Añadir subtarea</button>`; } else { detailsHTML += `<div class="flex justify-center"><label for="complete-task-checkbox" class="flex items-center gap-4 cursor-pointer"><input type="checkbox" id="complete-task-checkbox" class="custom-checkbox w-8 h-8" ${task.completed ? 'checked' : ''}><span class="text-xl font-bold">Marcar como completada</span></label></div>`; } detailsHTML += `</div></div>`; containers.taskDetails.innerHTML = detailsHTML; setupSubtaskDragAndDrop('subtasks-details-list', task.id); if (task.subtasks.length > 0) { document.querySelectorAll('#subtasks-details-list input[type="checkbox"]').forEach(cb => { cb.addEventListener('change', async e => { const subtask = task.subtasks.find(st => st.id === e.target.dataset.subtaskId); if(subtask) { subtask.completed = e.target.checked; task.completed = task.subtasks.every(st => st.completed); if (task.completed) { task.completedAt = new Date().toISOString(); await updateStreak(); } await dataService.saveData(state); await renderTaskDetails(); } }); }); document.getElementById('add-subtask-details-btn').addEventListener('click', () => { openSubtaskModal(); }); } else { document.getElementById('complete-task-checkbox').addEventListener('change', async e => { task.completed = e.target.checked; if (task.completed) { task.completedAt = new Date().toISOString(); await updateStreak(); } await dataService.saveData(state); await renderTaskDetails(); }); } }
     function renderFormSubtasks() { containers.subtasksFormList.innerHTML = state.tempSubtasks.map((st, i) => `<div class="subtask-item flex items-center justify-between p-2 rounded-lg" style="background: rgba(0,0,0,0.2);" draggable="true" data-index="${i}"><span class="drag-handle text-secondary cursor-move">⠿</span><span class="flex-1 px-2 text-secondary">${st.text}</span><button type="button" class="font-bold text-red-500 px-2" data-index="${i}">×</button></div>`).join(''); containers.subtasksFormList.querySelectorAll('button').forEach(btn => btn.addEventListener('click', e => { state.tempSubtasks.splice(e.target.dataset.index, 1); renderFormSubtasks(); })); setupSubtaskDragAndDrop('subtasks-form-list'); }
     function renderSettings() { zen.pomodoroDurationInput.value = state.zenSettings.pomodoro; zen.shortBreakDurationInput.value = state.zenSettings.shortBreak; zen.longBreakDurationInput.value = state.zenSettings.longBreak; inputs.colorPicker.value = state.zenSettings.color; inputs.wallpaperUrl.value = (state.wallpaper && !state.wallpaper.startsWith('data:')) ? state.wallpaper : ''; }
     function setupSubtaskDragAndDrop(containerId, taskId = null) { const list = document.getElementById(containerId); let draggedItem = null; list.addEventListener('dragstart', e => { draggedItem = e.target.closest('.subtask-item'); setTimeout(() => draggedItem?.classList.add('dragging'), 0); }); list.addEventListener('dragend', () => { draggedItem?.classList.remove('dragging'); draggedItem = null; }); list.addEventListener('dragover', e => { e.preventDefault(); const afterElement = [...list.querySelectorAll('.subtask-item:not(.dragging)')].reduce((closest, child) => { const box = child.getBoundingClientRect(); const offset = e.clientY - box.top - box.height / 2; return (offset < 0 && offset > closest.offset) ? { offset: offset, element: child } : closest; }, { offset: Number.NEGATIVE_INFINITY }).element; const currentDragged = document.querySelector('.dragging'); if (afterElement == null) { list.appendChild(currentDragged); } else { list.insertBefore(currentDragged, afterElement); } }); list.addEventListener('drop', async e => { e.preventDefault(); const newOrder = Array.from(list.querySelectorAll('.subtask-item')).map(item => taskId ? item.dataset.subtaskId : parseInt(item.dataset.index)); if (taskId) { const task = state.tasks.find(t => t.id === taskId); if (task) { task.subtasks.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id)); await dataService.saveData(state); } } else { state.tempSubtasks.sort((a, b) => newOrder.indexOf(state.tempSubtasks.indexOf(a)) - newOrder.indexOf(state.tempSubtasks.indexOf(b))); } }); }
-    function openSubtaskModal() { modal.element.classList.add('active'); modal.input.value = ''; modal.input.focus(); }
-    function closeSubtaskModal() { modal.element.classList.remove('active'); }
-    async function handleAddSubtask() { const text = modal.input.value.trim(); if (!text) return; if (state.currentView === 'form') { state.tempSubtasks.push({ text, completed: false }); renderFormSubtasks(); } else { const task = state.tasks.find(t => t.id === state.selectedTaskId); if (task) { task.subtasks.push({ id: `sub-${Date.now()}`, text, completed: false }); await dataService.saveData(state); await renderTaskDetails(); } } closeSubtaskModal(); }
+    function openSubtaskModal() { modal.subtask.element.classList.add('active'); modal.subtask.input.value = ''; modal.subtask.input.focus(); }
+    function closeSubtaskModal() { modal.subtask.element.classList.remove('active'); }
+    async function handleAddSubtask() { const text = modal.subtask.input.value.trim(); if (!text) return; if (state.currentView === 'form') { state.tempSubtasks.push({ text, completed: false }); renderFormSubtasks(); } else { const task = state.tasks.find(t => t.id === state.selectedTaskId); if (task) { task.subtasks.push({ id: `sub-${Date.now()}`, text, completed: false }); await dataService.saveData(state); await renderTaskDetails(); } } closeSubtaskModal(); }
     function openNewTaskForm() { state.selectedTaskId = null; formElements.form.reset(); formElements.form.querySelector('#save-task-btn').textContent = 'Crear Proyecto'; formElements.formTitle.textContent = 'Nuevo Proyecto'; state.tempSubtasks = []; renderFormSubtasks(); navigateTo('form'); }
     function openEditTaskForm(taskId) { const task = state.tasks.find(t => t.id === taskId); if (!task) return; state.selectedTaskId = taskId; formElements.form.reset(); formElements.form.querySelector('#save-task-btn').textContent = 'Guardar Cambios'; formElements.formTitle.textContent = 'Editar Proyecto'; formElements.title.value = task.title; formElements.description.value = task.description; if (task.dueDate) { formElements.dueDate.value = new Date(new Date(task.dueDate).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16); } formElements.priority.value = task.priority || 'medium'; formElements.tags.value = task.tags ? task.tags.join(', ') : ''; state.tempSubtasks = JSON.parse(JSON.stringify(task.subtasks)); renderFormSubtasks(); navigateTo('form'); }
     
     // --- LÓGICA DE HORARIO Y CALENDARIO ---
-    function renderSchedule() { containers.scheduleList.innerHTML = ''; if (state.schedule.length === 0) { containers.scheduleList.innerHTML = `<div class="text-center p-4"><h3 class="font-heading text-xl uppercase">Horario Vacío</h3><p class="mt-1 text-sm text-secondary">Añade tu primera materia para empezar.</p></div>`; return; } const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']; const scheduleByDay = days.map((_, dayIndex) => state.schedule.filter(s => s.day === dayIndex).sort((a,b) => a.startTime.localeCompare(b.startTime))); days.forEach((dayName, dayIndex) => { if (scheduleByDay[dayIndex].length > 0) { const dayGroup = document.createElement('div'); dayGroup.className = 'schedule-day-group'; let dayHTML = `<h3 class="font-heading text-2xl uppercase pb-2 border-b-2 border-white/20 mb-4">${dayName}</h3><div class="space-y-3">`; scheduleByDay[dayIndex].forEach(s => { dayHTML += `<div class="glass-pane p-4 flex justify-between items-center cursor-pointer" data-subject-id="${s.id}"><span class="font-bold">${s.name}</span><span class="text-secondary font-semibold">${s.startTime} - ${s.endTime}</span></div>`; }); dayHTML += `</div>`; dayGroup.innerHTML = dayHTML; containers.scheduleList.appendChild(dayGroup); } }); containers.scheduleList.querySelectorAll('[data-subject-id]').forEach(el => el.addEventListener('click', (e) => openEditSubjectForm(e.currentTarget.dataset.subjectId))); }
-    function openNewSubjectForm() { state.selectedSubjectId = null; formElements.subjectForm.reset(); formElements.subjectFormTitle.textContent = 'Nueva Materia'; formElements.saveSubject.textContent = 'Añadir Materia'; navigateTo('subjectForm'); }
-    function openEditSubjectForm(subjectId) { const subject = state.schedule.find(s => s.id === subjectId); if (!subject) return; state.selectedSubjectId = subjectId; formElements.subjectForm.reset(); formElements.subjectFormTitle.textContent = 'Editar Materia'; formElements.saveSubject.textContent = 'Guardar Cambios'; formElements.subjectName.value = subject.name; formElements.subjectDay.value = subject.day; formElements.subjectStartTime.value = subject.startTime; formElements.subjectEndTime.value = subject.endTime; navigateTo('subjectForm'); }
+    function showSubjectForm(show) {
+        containers.subjectFormContainer.style.display = show ? 'block' : 'none';
+        containers.scheduleDisplay.style.display = show ? 'none' : 'block';
+    }
+
+    function renderSchedule() {
+        showSubjectForm(false);
+
+        containers.scheduleList.innerHTML = '';
+        if (state.schedule.length === 0) {
+            containers.scheduleList.innerHTML = `<div class="text-center p-4"><h3 class="font-heading text-xl uppercase">Horario Vacío</h3><p class="mt-1 text-sm text-secondary">Añade tu primera materia para empezar.</p></div>`;
+            return; 
+        }
+        const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const scheduleByDay = days.map((_, dayIndex) => state.schedule.filter(s => s.day == dayIndex).sort((a,b) => a.startTime.localeCompare(b.startTime)));
+        
+        days.forEach((dayName, dayIndex) => {
+            if (scheduleByDay[dayIndex].length > 0) {
+                const dayGroup = document.createElement('div');
+                dayGroup.className = 'schedule-day-group';
+                let dayHTML = `<h3 class="font-heading text-2xl uppercase pb-2 border-b-2 border-white/20 mb-4">${dayName}</h3><div class="space-y-3">`;
+                scheduleByDay[dayIndex].forEach(s => {
+                    dayHTML += `<div class="glass-pane p-4 flex justify-between items-center cursor-pointer" data-subject-id="${s.id}"><span class="font-bold">${s.name}</span><span class="text-secondary font-semibold">${s.startTime} - ${s.endTime}</span></div>`;
+                });
+                dayHTML += `</div>`;
+                dayGroup.innerHTML = dayHTML;
+                containers.scheduleList.appendChild(dayGroup);
+            }
+        });
+        containers.scheduleList.querySelectorAll('[data-subject-id]').forEach(el => el.addEventListener('click', (e) => {
+            state.selectedSubjectId = e.currentTarget.dataset.subjectId;
+            navigateTo('grades');
+        }));
+    }
+
+    function openNewSubjectForm() {
+        state.selectedSubjectId = null;
+        formElements.subjectForm.reset();
+        formElements.subjectFormTitle.textContent = 'Nueva Materia';
+        buttons.saveSubject.textContent = 'Añadir Materia';
+        showSubjectForm(true);
+    }
+
+    function openEditSubjectForm() {
+        const subject = state.schedule.find(s => s.id === state.selectedSubjectId);
+        if (!subject) return;
+
+        navigateTo('schedule');
+
+        setTimeout(() => {
+            formElements.subjectForm.reset();
+            formElements.subjectFormTitle.textContent = 'Editar Materia';
+            buttons.saveSubject.textContent = 'Guardar Cambios';
+            formElements.subjectName.value = subject.name;
+            formElements.subjectDay.value = subject.day;
+            formElements.subjectStartTime.value = subject.startTime;
+            formElements.subjectEndTime.value = subject.endTime;
+            
+            showSubjectForm(true);
+        }, 450);
+    }
+
+    function renderGrades() {
+        const subject = state.schedule.find(s => s.id === state.selectedSubjectId);
+        if (!subject) {
+            navigateTo('schedule');
+            return;
+        }
+
+        containers.gradesSubjectTitle.textContent = subject.name;
+        
+        if (!subject.grades || subject.grades.length === 0) {
+            containers.gradesAverage.textContent = 'Sin calificaciones';
+            containers.gradesList.innerHTML = `<div class="text-center p-4"><p class="text-secondary">Aún no has añadido ninguna calificación.</p></div>`;
+        } else {
+            const total = subject.grades.reduce((sum, grade) => sum + grade.value, 0);
+            const average = total / subject.grades.length;
+            containers.gradesAverage.textContent = `Promedio: ${average.toFixed(2)} / Suma: ${total.toFixed(2)}`;
+
+            containers.gradesList.innerHTML = subject.grades.map((grade, index) => `
+                <div class="glass-pane p-4 flex justify-between items-center cursor-pointer grade-item" data-grade-index="${index}">
+                    <span class="font-bold">${grade.name}</span>
+                    <span class="text-secondary font-semibold text-xl">${grade.value.toFixed(2)}</span>
+                </div>
+            `).join('');
+
+            containers.gradesList.querySelectorAll('.grade-item').forEach(item => {
+                item.addEventListener('click', async (e) => {
+                    const gradeIndex = parseInt(e.currentTarget.dataset.gradeIndex);
+                    const gradeName = subject.grades[gradeIndex].name;
+                    if (confirm(`¿Estás seguro de que quieres eliminar la calificación "${gradeName}"?`)) {
+                        subject.grades.splice(gradeIndex, 1);
+                        await dataService.saveData(state);
+                        renderGrades();
+                    }
+                });
+            });
+        }
+    }
+
     function renderCalendar() { const calDate = new Date(state.calendarDate); const y = calDate.getFullYear(), m = calDate.getMonth(); containers.calendarTitle.textContent = calDate.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }).toUpperCase(); const firstDay = new Date(y, m, 1).getDay(); const daysInMonth = new Date(y, m + 1, 0).getDate(); containers.calendarGrid.innerHTML = ['D', 'L', 'M', 'X', 'J', 'V', 'S'].map(d => `<div class="font-bold text-secondary">${d}</div>`).join(''); for (let i = 0; i < firstDay; i++) containers.calendarGrid.innerHTML += `<div></div>`; const tasksByDate = {}; state.tasks.forEach(task => { if(task.dueDate){ const date = task.dueDate.split('T')[0]; if(!tasksByDate[date]) tasksByDate[date] = []; tasksByDate[date].push(task); }}); for (let day = 1; day <= daysInMonth; day++) { const el = document.createElement('div'); const fullDate = `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; el.textContent = day; el.dataset.date = fullDate; if (tasksByDate[fullDate]) el.classList.add('has-task'); el.addEventListener('click', () => { document.querySelectorAll('#calendar-grid > div').forEach(d => d.classList.remove('selected')); el.classList.add('selected'); renderTasksForDay(fullDate, tasksByDate[fullDate] || []); }); containers.calendarGrid.appendChild(el); } }
     function renderTasksForDay(dateStr, tasks) { const date = new Date(dateStr + 'T00:00:00'); containers.calendarTasks.innerHTML = `<h3 class="font-heading text-xl uppercase mb-2">Tareas para el ${date.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric' })}</h3>`; if(tasks.length > 0) { containers.calendarTasks.innerHTML += tasks.map(task => `<div class="glass-pane p-3 cursor-pointer" data-task-id="${task.id}">${task.title}</div>`).join(''); containers.calendarTasks.querySelectorAll('[data-task-id]').forEach(el => el.addEventListener('click', e => { state.selectedTaskId = e.currentTarget.dataset.taskId; renderTaskDetails(); navigateTo('details'); })); } else { containers.calendarTasks.innerHTML += `<p class="text-secondary">No hay tareas programadas.</p>`; } }
 
@@ -330,19 +492,46 @@ document.addEventListener('DOMContentLoaded', () => {
     [buttons.desktopSchedule, buttons.mobileSchedule].forEach(btn => btn.addEventListener('click', () => navigateTo('schedule')));
     [buttons.desktopCalendar, buttons.mobileCalendar].forEach(btn => btn.addEventListener('click', () => navigateTo('calendar')));
     [buttons.desktopSettings, buttons.mobileSettings].forEach(btn => btn.addEventListener('click', () => navigateTo('settings')));
+    
     buttons.addSubject.addEventListener('click', openNewSubjectForm);
-    buttons.cancelSubjectForm.addEventListener('click', () => navigateTo('schedule'));
-    formElements.subjectForm.addEventListener('submit', async (e) => { e.preventDefault(); const name = formElements.subjectName.value.trim(); if (!name) return; const subjectData = { name, day: parseInt(formElements.subjectDay.value), startTime: formElements.subjectStartTime.value, endTime: formElements.subjectEndTime.value }; if (state.selectedSubjectId) { const index = state.schedule.findIndex(s => s.id === state.selectedSubjectId); if (index > -1) state.schedule[index] = { ...state.schedule[index], ...subjectData }; } else { state.schedule.push({ ...subjectData, id: `sub-${Date.now()}` }); } await dataService.saveData(state); renderSchedule(); navigateTo('schedule'); });
+    buttons.cancelSubjectForm.addEventListener('click', () => {
+        showSubjectForm(false);
+    });
+
+    formElements.subjectForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = formElements.subjectName.value.trim();
+        if (!name) return;
+        const subjectData = {
+            name,
+            day: parseInt(formElements.subjectDay.value),
+            startTime: formElements.subjectStartTime.value,
+            endTime: formElements.subjectEndTime.value
+        };
+        if (state.selectedSubjectId) {
+            const index = state.schedule.findIndex(s => s.id === state.selectedSubjectId);
+            if (index > -1) {
+                const originalSubject = state.schedule[index];
+                state.schedule[index] = { ...originalSubject, ...subjectData };
+            }
+        } else {
+            state.schedule.push({ ...subjectData, id: `sub-${Date.now()}`, grades: [] });
+        }
+        await dataService.saveData(state);
+        showSubjectForm(false);
+        renderSchedule();
+    });
+
     buttons.calendarPrevMonth.addEventListener('click', () => { const d = new Date(state.calendarDate); d.setMonth(d.getMonth() - 1); state.calendarDate = d.toISOString(); renderCalendar(); });
     buttons.calendarNextMonth.addEventListener('click', () => { const d = new Date(state.calendarDate); d.setMonth(d.getMonth() + 1); state.calendarDate = d.toISOString(); renderCalendar(); });
     buttons.importData.addEventListener('click', () => inputs.importFile.click());
     inputs.importFile.addEventListener('change', importData);
     buttons.exportData.addEventListener('click', exportData);
     buttons.resetApp.addEventListener('click', resetApp);
-    modal.addBtnForm.addEventListener('click', openSubtaskModal); 
-    modal.confirmBtn.addEventListener('click', handleAddSubtask); 
-    modal.cancelBtn.addEventListener('click', closeSubtaskModal);
-    modal.input.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddSubtask(); });
+    modal.subtask.addBtnForm.addEventListener('click', openSubtaskModal); 
+    modal.subtask.confirmBtn.addEventListener('click', handleAddSubtask); 
+    modal.subtask.cancelBtn.addEventListener('click', closeSubtaskModal);
+    modal.subtask.input.addEventListener('keydown', e => { if (e.key === 'Enter') handleAddSubtask(); });
     buttons.saveWallpaperUrl.addEventListener('click', handleWallpaperUrl);
     inputs.wallpaperFile.addEventListener('change', handleWallpaperFile);
     buttons.resetWallpaper.addEventListener('click', resetWallpaper);
@@ -352,6 +541,28 @@ document.addEventListener('DOMContentLoaded', () => {
     inputs.colorPicker.addEventListener('input', async (e) => { state.zenSettings.color = e.target.value; applyAppearance(); await dataService.saveData(state); });
     zen.volumeSlider.addEventListener('input', e => { if (zenState.currentSound) zenState.currentSound.volume = e.target.value; });
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+
+    buttons.backToSchedule.addEventListener('click', () => navigateTo('schedule'));
+    buttons.editSubjectGrades.addEventListener('click', openEditSubjectForm);
+    buttons.addGrade.addEventListener('click', () => modal.grade.element.classList.add('active'));
+    buttons.cancelAddGrade.addEventListener('click', () => modal.grade.element.classList.remove('active'));
+    formElements.addGradeForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const subject = state.schedule.find(s => s.id === state.selectedSubjectId);
+        if (subject) {
+            if (!subject.grades) {
+                subject.grades = [];
+            }
+            subject.grades.push({
+                name: formElements.gradeNameInput.value,
+                value: parseFloat(formElements.gradeValueInput.value)
+            });
+            await dataService.saveData(state);
+            renderGrades();
+            modal.grade.element.classList.remove('active');
+            formElements.addGradeForm.reset();
+        }
+    });
 
     // --- INICIALIZACIÓN ---
     async function init() {
